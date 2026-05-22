@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
-host="${DEMONI_BRIDGE_HOST:-127.0.0.1}"
-port="${DEMONI_BRIDGE_PORT:-7654}"
+host="${JAMINI_BRIDGE_HOST:-127.0.0.1}"
+port="${JAMINI_BRIDGE_PORT:-7654}"
 curl --silent --fail "http://${host}:${port}/health" >/dev/null

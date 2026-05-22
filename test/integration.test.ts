@@ -1,5 +1,5 @@
 /**
- * Integration tests — full demoni CLI → bridge → DeepSeek flow tests.
+ * Integration tests — full jamini CLI → bridge → DeepSeek flow tests.
  *
  * These tests start the bridge and test CLI behavior end-to-end
  * with a mock DeepSeek server.
@@ -99,7 +99,7 @@ async function runCli(
 }
 
 
-describe('Demoni Integration', () => {
+describe('Jamini Integration', () => {
   beforeAll(async () => {
     const mock = await startMockDeepSeek();
     mockServer = mock.server;
@@ -115,46 +115,46 @@ describe('Demoni Integration', () => {
 
   // ── CLI commands that do NOT need a key ──────────────────────────
   describe('Help and version (no key needed)', () => {
-    it('demoni --help works without DEEPSEEK_API_KEY', async () => {
+    it('jamini --help works without DEEPSEEK_API_KEY', async () => {
       const { stdout, exitCode } = await runCli(['--help'], { DEEPSEEK_API_KEY: '' });
       expect(exitCode).toBe(0);
-      expect(stdout).toContain('demoni');
+      expect(stdout).toContain('jamini');
       expect(stdout).toContain('v4-flash');
     });
 
-    it('demoni --version works without DEEPSEEK_API_KEY', async () => {
+    it('jamini --version works without DEEPSEEK_API_KEY', async () => {
       const { stdout, exitCode } = await runCli(['--version'], { DEEPSEEK_API_KEY: '' });
       expect(exitCode).toBe(0);
-      expect(stdout).toContain('demoni v');
+      expect(stdout).toContain('jamini v');
     });
 
-    it('demoni -h works', async () => {
+    it('jamini -h works', async () => {
       const { stdout, exitCode } = await runCli(['-h'], { DEEPSEEK_API_KEY: '' });
       expect(exitCode).toBe(0);
-      expect(stdout).toContain('demoni');
+      expect(stdout).toContain('jamini');
     });
 
-    it('demoni help works', async () => {
+    it('jamini help works', async () => {
       const { exitCode } = await runCli(['help'], { DEEPSEEK_API_KEY: '' });
       expect(exitCode).toBe(0);
     });
 
-    it('demoni -V works', async () => {
+    it('jamini -V works', async () => {
       const { stdout, exitCode } = await runCli(['-V'], { DEEPSEEK_API_KEY: '' });
       expect(exitCode).toBe(0);
-      expect(stdout).toContain('demoni v');
+      expect(stdout).toContain('jamini v');
     });
 
-    it('demoni version works', async () => {
+    it('jamini version works', async () => {
       const { stdout, exitCode } = await runCli(['version'], { DEEPSEEK_API_KEY: '' });
       expect(exitCode).toBe(0);
-      expect(stdout).toContain('demoni v');
+      expect(stdout).toContain('jamini v');
     });
   });
 
   // ── Model validation ─────────────────────────────────────────────
   describe('Model validation', () => {
-    it('demoni -m v4-flash --help works', async () => {
+    it('jamini -m v4-flash --help works', async () => {
       const { exitCode } = await runCli(
         ['-m', 'v4-flash', '--help'],
         { DEEPSEEK_API_KEY: 'sk-test' },
@@ -162,7 +162,7 @@ describe('Demoni Integration', () => {
       expect(exitCode).toBe(0);
     });
 
-    it('demoni --model v4-flash-thinking --help works', async () => {
+    it('jamini --model v4-flash-thinking --help works', async () => {
       const { exitCode } = await runCli(
         ['--model', 'v4-flash-thinking', '--help'],
         { DEEPSEEK_API_KEY: 'sk-test' },
@@ -170,7 +170,7 @@ describe('Demoni Integration', () => {
       expect(exitCode).toBe(0);
     });
 
-    it('demoni --model=v4-pro --help works', async () => {
+    it('jamini --model=v4-pro --help works', async () => {
       const { exitCode } = await runCli(
         ['--model=v4-pro', '--help'],
         { DEEPSEEK_API_KEY: 'sk-test' },
@@ -180,7 +180,7 @@ describe('Demoni Integration', () => {
       expect(exitCode).toBe(0);
     });
 
-    it('demoni -m v4-pro-thinking --help works', async () => {
+    it('jamini -m v4-pro-thinking --help works', async () => {
       const { exitCode } = await runCli(
         ['-m', 'v4-pro-thinking', '--help'],
         { DEEPSEEK_API_KEY: 'sk-test' },
@@ -188,25 +188,25 @@ describe('Demoni Integration', () => {
       expect(exitCode).toBe(0);
     });
 
-    it('demoni -m unsupported-model fails with clear message', async () => {
+    it('jamini -m unsupported-model fails with clear message', async () => {
       const { stderr, exitCode } = await runCli(
         ['-m', 'chatgpt-4', 'hello'],
         { DEEPSEEK_API_KEY: 'sk-test' },
       );
       expect(exitCode).toBe(1);
-      expect(stderr).toContain('Unsupported Demoni model');
+      expect(stderr).toContain('Unsupported Jamini model');
     });
 
-    it('demoni -m gemini-pro fails with clear message', async () => {
+    it('jamini -m gemini-pro fails with clear message', async () => {
       const { stderr, exitCode } = await runCli(
         ['-m', 'gemini-pro', 'hello'],
         { DEEPSEEK_API_KEY: 'sk-test' },
       );
       expect(exitCode).toBe(1);
-      expect(stderr).toContain('Unsupported Demoni model');
+      expect(stderr).toContain('Unsupported Jamini model');
     });
 
-    it('demoni -m unknown-model fails', async () => {
+    it('jamini -m unknown-model fails', async () => {
       const { exitCode } = await runCli(
         ['-m', 'unknown-model-xyz', 'hello'],
         { DEEPSEEK_API_KEY: 'sk-test' },
@@ -217,7 +217,7 @@ describe('Demoni Integration', () => {
 
   // ── Fails without key for non-help commands ──────────────────────
   describe('Requires DEEPSEEK_API_KEY for real commands', () => {
-    it('demoni without DEEPSEEK_API_KEY fails with clear message', async () => {
+    it('jamini without DEEPSEEK_API_KEY fails with clear message', async () => {
       const { stderr, exitCode } = await runCli(
         ['echo', 'test'],
         { DEEPSEEK_API_KEY: '' },
@@ -229,7 +229,7 @@ describe('Demoni Integration', () => {
 
   // ── YOLO flag passthrough ────────────────────────────────────────
   describe('YOLO flag passthrough', () => {
-    it('demoni -y --help passes through', async () => {
+    it('jamini -y --help passes through', async () => {
       const { exitCode } = await runCli(
         ['-y', '--help'],
         { DEEPSEEK_API_KEY: 'sk-test' },
@@ -237,7 +237,7 @@ describe('Demoni Integration', () => {
       expect(exitCode).toBe(0);
     });
 
-    it('demoni --yolo --help passes through', async () => {
+    it('jamini --yolo --help passes through', async () => {
       const { exitCode } = await runCli(
         ['--yolo', '--help'],
         { DEEPSEEK_API_KEY: 'sk-test' },
@@ -245,7 +245,7 @@ describe('Demoni Integration', () => {
       expect(exitCode).toBe(0);
     });
 
-    it('demoni --approval-mode=yolo --help passes through', async () => {
+    it('jamini --approval-mode=yolo --help passes through', async () => {
       const { exitCode } = await runCli(
         ['--approval-mode=yolo', '--help'],
         { DEEPSEEK_API_KEY: 'sk-test' },
@@ -256,7 +256,7 @@ describe('Demoni Integration', () => {
 
   // ── Unknown flag passthrough ─────────────────────────────────────
   describe('Unknown flag passthrough', () => {
-    it('demoni --some-unknown-flag --help works', async () => {
+    it('jamini --some-unknown-flag --help works', async () => {
       const { exitCode } = await runCli(
         ['--some-unknown-flag', '--help'],
         { DEEPSEEK_API_KEY: 'sk-test' },
@@ -264,7 +264,7 @@ describe('Demoni Integration', () => {
       expect(exitCode).toBe(0);
     });
 
-    it('demoni --include=./foo --help works', async () => {
+    it('jamini --include=./foo --help works', async () => {
       const { exitCode } = await runCli(
         ['--include=./foo', '--help'],
         { DEEPSEEK_API_KEY: 'sk-test' },
@@ -272,7 +272,7 @@ describe('Demoni Integration', () => {
       expect(exitCode).toBe(0);
     });
 
-    it('demoni --output-format=json --help works', async () => {
+    it('jamini --output-format=json --help works', async () => {
       const { exitCode } = await runCli(
         ['--output-format=json', '--help'],
         { DEEPSEEK_API_KEY: 'sk-test' },

@@ -34,11 +34,11 @@ async function runCli(args: string[], env?: Record<string, string>): Promise<{
   });
 }
 
-describe('demoni CLI', () => {
+describe('jamini CLI', () => {
   it('prints help with --help', async () => {
     const { stdout, exitCode } = await runCli(['--help']);
     expect(exitCode).toBe(0);
-    expect(stdout).toContain('demoni');
+    expect(stdout).toContain('jamini');
     expect(stdout).toContain('v4-flash');
     expect(stdout).toContain('v4-pro-thinking');
     expect(stdout).toContain('YOLO');
@@ -48,7 +48,7 @@ describe('demoni CLI', () => {
   it('prints version with --version', async () => {
     const { stdout, exitCode } = await runCli(['--version']);
     expect(exitCode).toBe(0);
-    expect(stdout).toContain('demoni v');
+    expect(stdout).toContain('jamini v');
   });
 
   it('rejects unsupported model', async () => {
@@ -57,7 +57,7 @@ describe('demoni CLI', () => {
       { DEEPSEEK_API_KEY: 'sk-test' },
     );
     expect(exitCode).toBe(1);
-    expect(stderr).toContain('Unsupported Demoni model');
+    expect(stderr).toContain('Unsupported Jamini model');
     expect(stderr).toContain('v4-flash');
   });
 
@@ -137,13 +137,13 @@ describe('demoni CLI', () => {
   });
 });
 
-  it('shows demoni-branded no-input message (not gemini)', async () => {
+  it('shows jamini-branded no-input message (not gemini)', async () => {
     const { stderr } = await runCli(
       ['-y'],
       { DEEPSEEK_API_KEY: 'sk-test', TERM: 'dumb', CI: 'true', NO_COLOR: '1' },
     );
-    // Should show demoni-branded no-input message, not gemini
-    expect(stderr).toContain('demoni');
+    // Should show jamini-branded no-input message, not gemini
+    expect(stderr).toContain('jamini');
     expect(stderr).not.toContain('piping data into gemini');
   });
 
@@ -162,8 +162,8 @@ describe('demoni CLI', () => {
     expect(stderr).not.toContain('256-color');
     expect(stderr).not.toContain('Basic terminal');
     expect(stderr).not.toContain('Ripgrep');
-    // Verify demoni branding (not gemini)
-    expect(stderr).toContain('demoni');
+    // Verify jamini branding (not gemini)
+    expect(stderr).toContain('jamini');
   });
 
   it('shows YOLO message only once', async () => {

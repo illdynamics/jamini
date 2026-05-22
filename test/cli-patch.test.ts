@@ -1,5 +1,5 @@
 /**
- * Additional CLI tests for new Demoni features.
+ * Additional CLI tests for new Jamini features.
  * These are in a separate file to avoid modifying the original test structure.
  */
 import { describe, it, expect } from 'vitest';
@@ -42,14 +42,14 @@ async function runCli(
   });
 }
 
-describe('demoni CLI — advanced features', () => {
+describe('jamini CLI — advanced features', () => {
   it('rejects litellm translator mode early', async () => {
     // This must NOT use --help (which exits before translator check)
     const { stderr, exitCode } = await runCli(
       ['-m', 'v4-flash', 'hello'],
       {
         DEEPSEEK_API_KEY: 'sk-test',
-        DEMONI_TRANSLATOR_MODE: 'litellm',
+        JAMINI_TRANSLATOR_MODE: 'litellm',
       },
       6_000,
     );
@@ -71,7 +71,7 @@ describe('demoni CLI — advanced features', () => {
       { DEEPSEEK_API_KEY: 'sk-test' },
     );
     expect(exitCode).toBe(1);
-    expect(stderr).toContain('Unsupported Demoni model');
+    expect(stderr).toContain('Unsupported Jamini model');
   });
 
   it('fails with clear error on external mode unreachable bridge', async () => {
@@ -79,8 +79,8 @@ describe('demoni CLI — advanced features', () => {
       ['-m', 'v4-flash', 'hello'],
       {
         DEEPSEEK_API_KEY: 'sk-test',
-        DEMONI_BRIDGE_MODE: 'external',
-        DEMONI_BRIDGE_URL: 'http://127.0.0.1:19999',
+        JAMINI_BRIDGE_MODE: 'external',
+        JAMINI_BRIDGE_URL: 'http://127.0.0.1:19999',
       },
       6_000,
     );
@@ -93,14 +93,14 @@ describe('demoni CLI — advanced features', () => {
     expect(exitCode).toBe(0);
     expect(stdout).toContain('Bridge Modes');
     expect(stdout).toContain('Translator Modes');
-    expect(stdout).toContain('DEMONI_BRIDGE_MODE');
-    expect(stdout).toContain('DEMONI_TRANSLATOR_MODE');
+    expect(stdout).toContain('JAMINI_BRIDGE_MODE');
+    expect(stdout).toContain('JAMINI_TRANSLATOR_MODE');
   });
 
-  it('help shows default model from DEMONI_MODEL env', async () => {
+  it('help shows default model from JAMINI_MODEL env', async () => {
     const { stdout, exitCode } = await runCli(
       ['--help'],
-      { DEMONI_MODEL: 'v4-pro', DEEPSEEK_API_KEY: 'sk-test' },
+      { JAMINI_MODEL: 'v4-pro', DEEPSEEK_API_KEY: 'sk-test' },
     );
     expect(exitCode).toBe(0);
     expect(stdout).toContain('v4-pro');

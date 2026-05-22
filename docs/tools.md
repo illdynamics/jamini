@@ -1,6 +1,6 @@
 # Tools
 
-Demoni routes all Gemini CLI tool calls through the local bridge to DeepSeek. The bridge translates between Gemini `functionDeclarations` / `functionCall` / `functionResponse` format and DeepSeek OpenAI-compatible `tools` / `tool_calls` / `tool` role messages.
+Jamini routes all Gemini CLI tool calls through the local bridge to DeepSeek. The bridge translates between Gemini `functionDeclarations` / `functionCall` / `functionResponse` format and DeepSeek OpenAI-compatible `tools` / `tool_calls` / `tool` role messages.
 
 ## Supported Tools
 
@@ -32,7 +32,7 @@ See [`docs/api-translation.md`](./api-translation.md) for detailed field-level m
 Gemini CLI can be configured with MCP (Model Context Protocol) servers. If you add MCP servers:
 
 - Keep secrets (API keys, tokens) out of generated config files whenever possible
-- Settings are stored in `~/.demoni/gemini-cli-home/settings.json`
+- Settings are stored in `~/.jamini/gemini-cli-home/settings.json`
 - The Gemini CLI state directory is isolated — it never touches your host `~/.gemini`
 
 ## Unsupported Tools

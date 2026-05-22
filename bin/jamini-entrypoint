@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# Simple Docker entrypoint for Jamini
+# This just invokes the jamini CLI, which handles bridge + gemini CLI internally
+
+exec node /opt/jamini/dist/cli.js "$@"

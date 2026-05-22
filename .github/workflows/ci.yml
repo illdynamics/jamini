@@ -14,18 +14,18 @@ jobs:
 
       - name: Shell syntax (bash -n)
         run: |
-          for f in demoni scripts/install.sh bin/demoni bin/demoni-entrypoint bin/demoni-healthcheck bin/demoni-print-config; do
+          for f in jamini scripts/install.sh bin/jamini bin/jamini-entrypoint bin/jamini-healthcheck bin/jamini-print-config; do
             [ -f "$f" ] || continue
             bash -n "$f" || { echo "FAIL: bash -n $f"; exit 1; }
           done
           echo "All shell syntax OK"
 
       - name: ShellCheck
-        run: shellcheck demoni scripts/install.sh bin/demoni bin/demoni-entrypoint bin/demoni-healthcheck bin/demoni-print-config || true
+        run: shellcheck jamini scripts/install.sh bin/jamini bin/jamini-entrypoint bin/jamini-healthcheck bin/jamini-print-config || true
 
       - name: Executable permissions
         run: |
-          for f in demoni scripts/install.sh bin/demoni bin/demoni-entrypoint bin/demoni-healthcheck bin/demoni-print-config; do
+          for f in jamini scripts/install.sh bin/jamini bin/jamini-entrypoint bin/jamini-healthcheck bin/jamini-print-config; do
             [ -f "$f" ] || continue
             test -x "$f" || { echo "FAIL: not executable — $f"; exit 1; }
           done
@@ -72,11 +72,11 @@ jobs:
       - name: Install bridge deps
         run: cd bridge && npm ci
       - name: Build
-        run: ./demoni build
+        run: ./jamini build
       - name: Typecheck / Lint
-        run: ./demoni lint
+        run: ./jamini lint
       - name: Test
-        run: ./demoni test
+        run: ./jamini test
 
   package:
     name: Package Check
@@ -91,7 +91,7 @@ jobs:
       - name: Install root deps
         run: npm ci
       - name: Build
-        run: ./demoni build
+        run: ./jamini build
       - name: Package dry-run
         run: npm pack --dry-run
       - name: Release hygiene
@@ -104,36 +104,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build Docker image
-        run: docker build -t demoni:ci .
+        run: docker build -t jamini:ci .
       - name: Smoke — help
-        run: docker run --rm demoni:ci --help
+        run: docker run --rm jamini:ci --help
       - name: Smoke — version
-        run: docker run --rm demoni:ci --version
+        run: docker run --rm jamini:ci --version
       - name: Smoke — with key
-        run: docker run --rm -e DEEPSEEK_API_KEY=sk-test-key demoni:ci --version
+        run: docker run --rm -e DEEPSEEK_API_KEY=sk-test-key jamini:ci --version
       - name: Smoke — gemini CLI available
         run: |
-          docker run --rm demoni:ci gemini --version
+          docker run --rm jamini:ci gemini --version
           echo "Gemini CLI inside container: OK"
       - name: Smoke — bridge server starts
         run: |
-          docker run --rm -d --name demoni-bridge-ci \
+          docker run --rm -d --name jamini-bridge-ci \
             --entrypoint node \
             -e DEEPSEEK_API_KEY=sk-test-key \
-            -e DEMONI_BRIDGE_AUTO_START=1 \
-            demoni:ci /opt/demoni/bridge/dist/server.js
+            -e JAMINI_BRIDGE_AUTO_START=1 \
+            jamini:ci /opt/jamini/bridge/dist/server.js
           sleep 2
-          docker exec demoni-bridge-ci curl -sf http://127.0.0.1:7654/health
+          docker exec jamini-bridge-ci curl -sf http://127.0.0.1:7654/health
           echo ""
-          docker exec demoni-bridge-ci curl -sf http://127.0.0.1:7654/v1/models
-          docker stop demoni-bridge-ci
+          docker exec jamini-bridge-ci curl -sf http://127.0.0.1:7654/v1/models
+          docker stop jamini-bridge-ci
       - name: Smoke — config generation
         run: |
-          docker run --rm -e DEEPSEEK_API_KEY=sk-test-key demoni:ci node /opt/demoni/dist/cli.js --help | grep -q 'Demoni'
+          docker run --rm -e DEEPSEEK_API_KEY=sk-test-key jamini:ci node /opt/jamini/dist/cli.js --help | grep -q 'Jamini'
           echo "CLI config generation: OK"
       - name: Smoke — model catalog in container
         run: |
-          docker run --rm --entrypoint cat demoni:ci /opt/demoni/config/model-catalog.json | grep -q 'v4-flash'
+          docker run --rm --entrypoint cat jamini:ci /opt/jamini/config/model-catalog.json | grep -q 'v4-flash'
           echo "Model catalog present: OK"
 
   release:
@@ -156,31 +156,31 @@ jobs:
 
       - name: Build archive
         run: |
-          ARCHIVE="demoni-${{ env.tag }}.zip"
-          git archive --format=zip --prefix="demoni-${{ env.tag }}/" --output="${ARCHIVE}" HEAD
+          ARCHIVE="jamini-${{ env.tag }}.zip"
+          git archive --format=zip --prefix="jamini-${{ env.tag }}/" --output="${ARCHIVE}" HEAD
           echo "archive=${ARCHIVE}" >> "${GITHUB_ENV}"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.tag }}
-          name: "Demoni ${{ env.tag }}"
+          name: "Jamini ${{ env.tag }}"
           body: |
-            ## Demoni ${{ env.tag }}
+            ## Jamini ${{ env.tag }}
 
             ### Install
 
             ```bash
-            curl -fsSL https://github.com/illdynamics/demoni/releases/download/${{ env.tag }}/demoni-${{ env.tag }}.zip -o demoni.zip
-            unzip demoni.zip
-            cd demoni-${{ env.tag }}
-            ./demoni install
+            curl -fsSL https://github.com/illdynamics/jamini/releases/download/${{ env.tag }}/jamini-${{ env.tag }}.zip -o jamini.zip
+            unzip jamini.zip
+            cd jamini-${{ env.tag }}
+            ./jamini install
             ```
 
             ### Or install from the web
 
             ```bash
-            curl -fsSL https://raw.githubusercontent.com/illdynamics/demoni/main/scripts/install.sh | bash
+            curl -fsSL https://raw.githubusercontent.com/illdynamics/jamini/main/scripts/install.sh | bash
             ```
 
             ### Quick Start
@@ -188,9 +188,9 @@ jobs:
             ```bash
             export PATH="${HOME}/bin:${PATH}"
             export DEEPSEEK_API_KEY="sk-..."
-            demoni --help
+            jamini --help
             ```
 
-            See [RELEASE-NOTES.md](https://github.com/illdynamics/demoni/blob/main/RELEASE-NOTES.md) for full changelog.
+            See [RELEASE-NOTES.md](https://github.com/illdynamics/jamini/blob/main/RELEASE-NOTES.md) for full changelog.
           files: ${{ env.archive }}
           generate_release_notes: false

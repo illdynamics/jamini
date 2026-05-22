@@ -1,6 +1,6 @@
-# Demoni Privacy Lockdown
+# Jamini Privacy Lockdown
 
-This document describes all privacy hardening applied to Demoni to ensure no data is sent to Google, Gemini, Vertex AI, or any telemetry/tracking services.
+This document describes all privacy hardening applied to Jamini to ensure no data is sent to Google, Gemini, Vertex AI, or any telemetry/tracking services.
 
 ## What Is Blocked
 
@@ -89,13 +89,13 @@ All automatic update mechanisms are disabled:
 
 ### Persistent History
 History mode defaults to `ephemeral` (memory-only, wiped on exit).
-Set `DEMONI_HISTORY_MODE=local` to opt into local-only persistent history.
+Set `JAMINI_HISTORY_MODE=local` to opt into local-only persistent history.
 History files, if created, use 0700/0600 permissions and are never synced.
 
 ### Logging
 - Default log level is `error` for the CLI
 - All API keys, tokens, and secrets are redacted from logs
-- Logs are written to `$DEMONI_HOME/log/` with mode 0700/0600
+- Logs are written to `$JAMINI_HOME/log/` with mode 0700/0600
 - No prompts, completions, or file contents are logged
 
 ### Feedback
@@ -113,7 +113,7 @@ All feedback endpoints are disabled. Any feedback mechanism is no-op by default.
 - Brave Search API (opt-in, requires `BRAVE_API_KEY`)
 - Unstructured API (opt-in, requires `UNSTRUCTURED_API_KEY`)
 - Gemini CLI binary execution (as wrapper target — telemetry suppressed via env vars and settings)
-- Local-only persistent history (opt-in via `DEMONI_HISTORY_MODE=local`)
+- Local-only persistent history (opt-in via `JAMINI_HISTORY_MODE=local`)
 
 ## How to Verify
 
@@ -148,12 +148,12 @@ Expected result: **No matches**.
 
 ## How to Wipe Local Data
 ```bash
-rm -rf ~/.demoni
+rm -rf ~/.jamini
 ```
 
 To wipe only history:
 ```bash
-rm -rf ~/.demoni/history
+rm -rf ~/.jamini/history
 ```
 
 ## How to Manually Update
@@ -168,16 +168,16 @@ Auto-update is disabled. Manual updates only.
 ## Warnings
 
 ### Google Account-Level Settings
-Demoni cannot control Google account-level Gemini Apps activity settings. If you use Gemini directly (outside Demoni), you must separately disable:
+Jamini cannot control Google account-level Gemini Apps activity settings. If you use Gemini directly (outside Jamini), you must separately disable:
 
 - [Gemini Apps Activity](https://myactivity.google.com/product/gemini)
 - [Google Account History settings](https://myaccount.google.com/data-and-privacy)
 
 ### DeepSeek Privacy
-DeepSeek processes prompts and completions on their servers. Demoni cannot control DeepSeek's data handling. Review DeepSeek's privacy policy for their data practices.
+DeepSeek processes prompts and completions on their servers. Jamini cannot control DeepSeek's data handling. Review DeepSeek's privacy policy for their data practices.
 
 ### Local Bridge Security
-The Demoni bridge listens on 127.0.0.1 only and requires a local API key. Ensure no other local processes can access the bridge port.
+The Jamini bridge listens on 127.0.0.1 only and requires a local API key. Ensure no other local processes can access the bridge port.
 
 ## Defense-in-Depth Layers
 
@@ -205,7 +205,7 @@ If the bridge detects an attempted Google/Gemini connection:
 
 If an unsupported model is requested:
 - Request rejected with HTTP 403
-- Error: `Blocked Google/Gemini route by privacy policy. Demoni is configured for DeepSeek-only operation.`
+- Error: `Blocked Google/Gemini route by privacy policy. Jamini is configured for DeepSeek-only operation.`
 
 If OAuth or ADC auth is attempted:
 - Request rejected with HTTP 403
@@ -213,4 +213,4 @@ If OAuth or ADC auth is attempted:
 
 ---
 
-*Applied to Demoni v0.2.3+*
+*Applied to Jamini v0.2.3+*

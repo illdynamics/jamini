@@ -1,10 +1,10 @@
 /**
  * Real Gemini CLI Integration Test
  *
- * Starts a mock DeepSeek server, runs demoni with real Gemini CLI,
+ * Starts a mock DeepSeek server, runs jamini with real Gemini CLI,
  * and asserts the full end-to-end flow works without Google auth.
  *
- * Skip if DEMONI_RUN_REAL_GEMINI_TESTS is not set to '1'.
+ * Skip if JAMINI_RUN_REAL_GEMINI_TESTS is not set to '1'.
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { spawn } from 'node:child_process';
@@ -14,8 +14,8 @@ import { tmpdir } from 'node:os';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 
-const DEMONI_CLI = resolve(process.cwd(), 'dist/cli.js');
-const RUN_TESTS = process.env.DEMONI_RUN_REAL_GEMINI_TESTS === '1';
+const JAMINI_CLI = resolve(process.cwd(), 'dist/cli.js');
+const RUN_TESTS = process.env.JAMINI_RUN_REAL_GEMINI_TESTS === '1';
 
 let mockServer: ReturnType<typeof createServer>;
 let mockPort = 0;
@@ -89,13 +89,13 @@ function stopMockDeepSeek(): Promise<void> {
   });
 }
 
-function runDemoni(args: string[], env: Record<string, string>, timeoutMs = 30000): Promise<{
+function runJamini(args: string[], env: Record<string, string>, timeoutMs = 30000): Promise<{
   stdout: string;
   stderr: string;
   exitCode: number | null;
 }> {
   return new Promise((resolve) => {
-    const child = spawn('node', [DEMONI_CLI, ...args], {
+    const child = spawn('node', [JAMINI_CLI, ...args], {
       env: { ...process.env, ...env },
       stdio: 'pipe',
     });
@@ -137,7 +137,7 @@ describe.runIf(RUN_TESTS)('Real Gemini CLI E2E', () => {
   let tempHome: string;
 
   beforeAll(async () => {
-    tempHome = mkdtempSync(join(tmpdir(), 'demoni-e2e-'));
+    tempHome = mkdtempSync(join(tmpdir(), 'jamini-e2e-'));
     await startMockDeepSeek();
   }, 15000);
 
@@ -146,20 +146,20 @@ describe.runIf(RUN_TESTS)('Real Gemini CLI E2E', () => {
     try { rmSync(tempHome, { recursive: true, force: true }); } catch {}
   });
 
-  it('demoni with real Gemini CLI routes through mock DeepSeek', async () => {
+  it('jamini with real Gemini CLI routes through mock DeepSeek', async () => {
     const env = {
       HOME: tempHome,
-      DEMONI_HOME: join(tempHome, '.demoni'),
+      JAMINI_HOME: join(tempHome, '.jamini'),
       DEEPSEEK_API_KEY: 'sk-test-mock-key',
       DEEPSEEK_BASE_URL: mockBaseUrl,
-      DEMONI_BRIDGE_MODE: 'process',
-      DEMONI_TRANSLATOR_MODE: 'custom',
-      DEMONI_GEMINI_BIN: '/opt/homebrew/bin/gemini',
-      DEMONI_BRIDGE_PORT: '',
-      DEMONI_DEBUG: '1',
+      JAMINI_BRIDGE_MODE: 'process',
+      JAMINI_TRANSLATOR_MODE: 'custom',
+      JAMINI_GEMINI_BIN: '/opt/homebrew/bin/gemini',
+      JAMINI_BRIDGE_PORT: '',
+      JAMINI_DEBUG: '1',
     };
 
-    const result = await runDemoni(
+    const result = await runJamini(
       ['-m', 'v4-flash', '-p', 'say hi', '--output-format', 'text'],
       env,
       45000,

@@ -4,20 +4,20 @@ set -Eeuo pipefail
 log() { printf '[package] %s\n' "$*" >&2; }
 
 VERSION="0.1.0"
-OUTPUT="demoni-${VERSION}.zip"
+OUTPUT="jamini-${VERSION}.zip"
 
-log "packaging Demoni v${VERSION}"
+log "packaging Jamini v${VERSION}"
 
 # Create a temporary staging area
 STAGING=$(mktemp -d)
 trap 'rm -rf "$STAGING"' EXIT
 
-mkdir -p "$STAGING/demoni"
-cp -r . "$STAGING/demoni/"
+mkdir -p "$STAGING/jamini"
+cp -r . "$STAGING/jamini/"
 
 # Exclusions
-cd "$STAGING/demoni"
-rm -rf .git .env *.env bridge/node_modules tools/node_modules gemini-cli/node_modules bridge/dist tools/dist .DS_Store __MACOSX logs .demoni-gemini .gemini
+cd "$STAGING/jamini"
+rm -rf .git .env *.env bridge/node_modules tools/node_modules gemini-cli/node_modules bridge/dist tools/dist .DS_Store __MACOSX logs .jamini-gemini .gemini
 find . -name "node_modules" -type d -prune -exec rm -rf {} +
 find . -name "dist" -type d -prune -exec rm -rf {} +
 find . -name "build" -type d -prune -exec rm -rf {} +
@@ -33,7 +33,7 @@ if [[ "${1:-}" == "--check" ]]; then
 fi
 
 cd ..
-zip -r "$OUTPUT" demoni/ >/dev/null
+zip -r "$OUTPUT" jamini/ >/dev/null
 
 log "created $OUTPUT"
 mv "$OUTPUT" "${OLDPWD}/"

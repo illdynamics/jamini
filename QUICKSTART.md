@@ -1,23 +1,23 @@
-# Demoni Quickstart
+# Jamini Quickstart
 
-Get up and running with Demoni in under a minute.
+Get up and running with Jamini in under a minute.
 
 ## 1. Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/illdynamics/demoni/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/illdynamics/jamini/main/scripts/install.sh | bash
 ```
 
-This downloads the latest release, builds the container image, installs `@google/gemini-cli` globally, and puts the `demoni` command in `~/bin/demoni`.
+This downloads the latest release, builds the container image, installs `@google/gemini-cli` globally, and puts the `jamini` command in `~/bin/jamini`.
 
 Or from source:
 
 ```bash
-git clone https://github.com/illdynamics/demoni.git
-cd demoni
+git clone https://github.com/illdynamics/jamini.git
+cd jamini
 npm install && cd bridge && npm install && cd ..
 npm run build
-./demoni install
+./jamini install
 ```
 
 ## 2. Set Your DeepSeek API Key
@@ -40,19 +40,19 @@ Add that line to `~/.zshrc` or `~/.bashrc` to make it permanent.
 
 ```bash
 # Interactive mode
-demoni
+jamini
 
 # Quick prompt
-demoni "explain this codebase"
+jamini "explain this codebase"
 
 # Choose a model
-demoni -m v4-flash "quick question"
-demoni -m v4-flash-thinking "think through this bug"
-demoni -m v4-pro "refactor this file"
-demoni -m v4-pro-thinking "design the new API"
+jamini -m v4-flash "quick question"
+jamini -m v4-flash-thinking "think through this bug"
+jamini -m v4-pro "refactor this file"
+jamini -m v4-pro-thinking "design the new API"
 
 # YOLO mode (auto-approve all tool actions)
-demoni -y -m v4-pro-thinking "run tests and fix failures"
+jamini -y -m v4-pro-thinking "run tests and fix failures"
 ```
 
 ## Models
@@ -67,10 +67,10 @@ demoni -y -m v4-pro-thinking "run tests and fix failures"
 ## How It Works
 
 ```
-demoni → starts local bridge → spawns gemini CLI → Gemini CLI talks to bridge → bridge talks to DeepSeek
+jamini → starts local bridge → spawns gemini CLI → Gemini CLI talks to bridge → bridge talks to DeepSeek
 ```
 
-The Gemini CLI source is never modified. Demoni wraps it with environment variables and a local HTTP translation bridge.
+The Gemini CLI source is never modified. Jamini wraps it with environment variables and a local HTTP translation bridge.
 
 ## Next Steps
 

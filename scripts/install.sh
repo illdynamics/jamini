@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 # ───────────────────────────────────────────────────────────────────
-# Demoni Installer — curl | bash oneliner
+# Jamini Installer — curl | bash oneliner
 # ───────────────────────────────────────────────────────────────────
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/illdynamics/demoni/main/scripts/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/illdynamics/jamini/main/scripts/install.sh | bash
 #
 # Downloads the release zip matching the version in VERSION, extracts
-# it, and runs ./demoni install.
+# it, and runs ./jamini install.
 #
 # One source of truth: the VERSION file at the repo root.
 # ───────────────────────────────────────────────────────────────────
 set -euo pipefail
 
-REPO="illdynamics/demoni"
+REPO="illdynamics/jamini"
 RAW_BASE="https://raw.githubusercontent.com/${REPO}/main"
 TMP_DIR=""
 
@@ -43,7 +43,7 @@ detect_platform() {
   case "$(uname -s)" in
     Linux)  echo "linux" ;;
     Darwin) echo "macos" ;;
-    *)      error "Unsupported platform: $(uname -s). Demoni supports Linux and macOS." ;;
+    *)      error "Unsupported platform: $(uname -s). Jamini supports Linux and macOS." ;;
   esac
 }
 
@@ -91,7 +91,7 @@ main() {
 
   echo ""
   echo -e "${BOLD}╔══════════════════════════════════════════╗${RESET}"
-  echo -e "${BOLD}║       Demoni Installer (${platform})        ║${RESET}"
+  echo -e "${BOLD}║       Jamini Installer (${platform})        ║${RESET}"
   echo -e "${BOLD}╚══════════════════════════════════════════╝${RESET}"
   echo ""
 
@@ -104,11 +104,11 @@ main() {
   info "Version: ${tag}"
 
   # Download and extract
-  TMP_DIR=$(mktemp -d 2>/dev/null || mktemp -d -t demoni-install)
-  local archive_url="https://github.com/${REPO}/releases/download/${tag}/demoni-${tag}.zip"
-  local archive="${TMP_DIR}/demoni-${tag}.zip"
+  TMP_DIR=$(mktemp -d 2>/dev/null || mktemp -d -t jamini-install)
+  local archive_url="https://github.com/${REPO}/releases/download/${tag}/jamini-${tag}.zip"
+  local archive="${TMP_DIR}/jamini-${tag}.zip"
 
-  info "Downloading demoni-${tag}.zip..."
+  info "Downloading jamini-${tag}.zip..."
   curl -fsSL "${archive_url}" -o "${archive}" || \
     error "Failed to download ${archive_url}"
 
@@ -116,21 +116,21 @@ main() {
   unzip -q "${archive}" -d "${TMP_DIR}" || \
     error "Failed to extract archive"
 
-  # Run ./demoni install
-  local extract_dir="${TMP_DIR}/demoni-${tag}"
+  # Run ./jamini install
+  local extract_dir="${TMP_DIR}/jamini-${tag}"
   if [[ ! -d "${extract_dir}" ]]; then
     # Try to find the extracted directory
-    extract_dir=$(find "${TMP_DIR}" -maxdepth 2 -name "demoni" -type f | head -1)
+    extract_dir=$(find "${TMP_DIR}" -maxdepth 2 -name "jamini" -type f | head -1)
     if [[ -z "${extract_dir}" ]]; then
-      error "Could not find ./demoni in extracted archive"
+      error "Could not find ./jamini in extracted archive"
     fi
     extract_dir=$(dirname "${extract_dir}")
   fi
 
-  info "Installing Demoni..."
+  info "Installing Jamini..."
   cd "${extract_dir}"
-  chmod +x demoni
-  ./demoni install
+  chmod +x jamini
+  ./jamini install
 }
 
 main "$@"

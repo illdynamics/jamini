@@ -57,10 +57,10 @@ describe('stderr-filter', () => {
   });
 
   describe('no-input message replacement', () => {
-    it('replaces gemini with demoni in no-input message', () => {
+    it('replaces gemini with jamini in no-input message', () => {
       const input = 'No input provided via stdin. Input can be provided by piping data into gemini or using the --prompt option.';
       const result = filterStderrLine(input);
-      expect(result).toContain('demoni');
+      expect(result).toContain('jamini');
       expect(result).not.toContain('gemini');
     });
   });

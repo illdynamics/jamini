@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-set -Eeuo pipefail
-
-# Simple Docker entrypoint for Demoni
-# This just invokes the demoni CLI, which handles bridge + gemini CLI internally
-
-exec node /opt/demoni/dist/cli.js "$@"

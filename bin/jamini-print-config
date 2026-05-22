@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+printf 'JAMINI_MODEL=%s\n' "${JAMINI_MODEL:-v4-flash-thinking}"
+printf 'JAMINI_BRIDGE_HOST=%s\n' "${JAMINI_BRIDGE_HOST:-127.0.0.1}"
+printf 'JAMINI_BRIDGE_PORT=%s\n' "${JAMINI_BRIDGE_PORT:-7654}"
+printf 'JAMINI_HOME=%s\n' "${JAMINI_HOME:-$HOME/.jamini}"
+if [ -n "${DEEPSEEK_API_KEY:-}" ]; then
+  printf 'DEEPSEEK_API_KEY=<set (redacted)>\n'
+else
+  printf 'DEEPSEEK_API_KEY=<missing>\n'
+fi

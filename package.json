@@ -1,10 +1,10 @@
 {
-  "name": "demoni",
+  "name": "jamini",
   "version": "0.2.3",
   "description": "Production-grade Gemini CLI drop-in replacement that routes to DeepSeek V4 models",
   "type": "module",
   "bin": {
-    "demoni": "./bin/demoni.js"
+    jamini: "./bin/jamini.js"
   },
   "main": "dist/cli.js",
   "files": [
@@ -33,7 +33,7 @@
     "test:ci": "npx vitest run --exclude 'test/docker*'",
     "test:unit": "npx vitest run --exclude \"test/docker*\"",
     "check:release-hygiene": "bash scripts/check-release-hygiene.sh",
-    "test:real-gemini": "DEMONI_RUN_REAL_GEMINI_TESTS=1 npx vitest run test/real-gemini-cli.integration.test.ts 2>/dev/null || echo \"Real Gemini CLI tests require interactive terminal. Set DEMONI_RUN_REAL_GEMINI_TESTS=1 to enable.\"",
+    "test:real-gemini": "JAMINI_RUN_REAL_GEMINI_TESTS=1 npx vitest run test/real-gemini-cli.integration.test.ts 2>/dev/null || echo \"Real Gemini CLI tests require interactive terminal. Set JAMINI_RUN_REAL_GEMINI_TESTS=1 to enable.\"",
     "privacy:audit": "bash scripts/privacy-audit.sh",
     "test:privacy": "npx vitest run test/privacy.test.ts test/bridge-privacy.test.ts"
   },
@@ -43,7 +43,7 @@
     "cli",
     "ai",
     "coding-agent",
-    "demoni"
+    "jamini"
   ],
   "license": "Apache-2.0",
   "engines": {

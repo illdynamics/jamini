@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # ───────────────────────────────────────────────────────────────────
-# Demoni Bootstrap — build, install, dev, test, and run
+# Jamini Bootstrap — build, install, dev, test, and run
 # ───────────────────────────────────────────────────────────────────
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_DIR="${HOME}/.config/demoni"
+CONFIG_DIR="${HOME}/.config/jamini"
 BIN_DIR="${HOME}/bin"
-IMAGE_NAME="demoni"
+IMAGE_NAME="jamini"
 # Read version from VERSION file at repo root
 VERSION=$(cat "${SCRIPT_DIR}/VERSION" 2>/dev/null | tr -d "\n" | sed "s/^v//")
 VERSION="${VERSION:-0.0.0}"
@@ -48,20 +48,20 @@ image_exists() {
 # ── help ─────────────────────────────────────────────────────────
 
 cmd_help() {
-  echo "Demoni v${VERSION} — AI coding agent"
+  echo "Jamini v${VERSION} — AI coding agent"
   echo ""
   echo "Usage:"
-  echo "  ./demoni <command> [options]"
+  echo "  ./jamini <command> [options]"
   echo ""
   echo "Bootstrap & system:"
   echo "  build              Build TypeScript source (bridge + CLI)"
   echo "  clean              Remove build artifacts (dist/)"
-  echo "  install            Install demoni to ~/.config/demoni & ~/bin/demoni"
+  echo "  install            Install jamini to ~/.config/jamini & ~/bin/jamini"
   echo "  image              Build the Docker/Podman container image"
-  echo "  uninstall          Remove demoni from ~/.config/demoni & ~/bin/demoni"
+  echo "  uninstall          Remove jamini from ~/.config/jamini & ~/bin/jamini"
   echo ""
   echo "Development:"
-  echo "  dev [args...]      Run demoni directly via tsx (no build needed)"
+  echo "  dev [args...]      Run jamini directly via tsx (no build needed)"
   echo "  run [args...]      Alias for dev"
   echo "  lint               Typecheck all TypeScript"
   echo "  test               Run test suite"
@@ -73,10 +73,10 @@ cmd_help() {
   echo "  help               Show this help"
   echo ""
   echo "Quick start:"
-  echo "  ./demoni install"
+  echo "  ./jamini install"
   echo "  export PATH=\"\${HOME}/bin:\${PATH}\""
   echo "  export DEEPSEEK_API_KEY=\"sk-...\""
-  echo "  demoni --help"
+  echo "  jamini --help"
 }
 
 # ── version ──────────────────────────────────────────────────────
@@ -94,7 +94,7 @@ cmd_models() {
     MODEL_CATALOG.forEach(m => console.log(m.id.padEnd(22), m.displayName, m.thinking ? '(thinking)' : ''));
     "
   else
-    error "Bridge not built. Run: ./demoni build"
+    error "Bridge not built. Run: ./jamini build"
   fi
 }
 
@@ -146,9 +146,9 @@ cmd_dev() {
 
 cmd_image() {
   detect_engine
-  info "Building Demoni v${VERSION} ${CONTAINER_ENGINE} image..."
+  info "Building Jamini v${VERSION} ${CONTAINER_ENGINE} image..."
   (cd "${SCRIPT_DIR}" && ${CONTAINER_ENGINE} build -t "${IMAGE_NAME}:latest" -t "${IMAGE_NAME}:v${VERSION}" .)
-  info "Image built successfully (demoni:latest, demoni:v${VERSION})"
+  info "Image built successfully (jamini:latest, jamini:v${VERSION})"
 }
 
 # ── install ──────────────────────────────────────────────────────
@@ -189,7 +189,7 @@ cmd_install() {
     echo ""
   fi
 
-  # ── Create ~/.config/demoni ──────────────────────────────────
+  # ── Create ~/.config/jamini ──────────────────────────────────
 
   mkdir -p "${CONFIG_DIR}"
 
@@ -213,17 +213,17 @@ EOF
   mkdir -p "${CONFIG_DIR}/run"
   mkdir -p "${CONFIG_DIR}/gemini-cli-home"
 
-  # ── Create ~/bin/demoni wrapper ──────────────────────────────
+  # ── Create ~/bin/jamini wrapper ──────────────────────────────
 
   mkdir -p "${BIN_DIR}"
 
-  cat > "${BIN_DIR}/demoni" << 'WRAPPER_EOF'
+  cat > "${BIN_DIR}/jamini" << 'WRAPPER_EOF'
 #!/usr/bin/env bash
-# Demoni — AI coding agent (containerized)
+# Jamini — AI coding agent (containerized)
 set -euo pipefail
 
-CONFIG_DIR="${HOME}/.config/demoni"
-IMAGE_NAME="demoni"
+CONFIG_DIR="${HOME}/.config/jamini"
+IMAGE_NAME="jamini"
 CONTAINER_ENGINE=""
 
 if command -v podman &>/dev/null; then
@@ -236,7 +236,7 @@ else
 fi
 
 if ! ${CONTAINER_ENGINE} image inspect "${IMAGE_NAME}:latest" &>/dev/null 2>&1; then
-  echo "✗ Demoni image not found. Run './demoni install' from the repo first." >&2
+  echo "✗ Jamini image not found. Run './jamini install' from the repo first." >&2
   exit 1
 fi
 
@@ -253,22 +253,22 @@ exec ${CONTAINER_ENGINE} run --rm -i ${TTY_FLAG} \
   ${TERM:+-e TERM="${TERM}"} \
   ${COLORTERM:+-e COLORTERM="${COLORTERM}"} \
   ${DEEPSEEK_API_KEY:+-e DEEPSEEK_API_KEY="${DEEPSEEK_API_KEY}"} \
-  ${DEMONI_MODEL:+-e DEMONI_MODEL="${DEMONI_MODEL}"} \
-  ${DEMONI_REASONING_EFFORT:+-e DEMONI_REASONING_EFFORT="${DEMONI_REASONING_EFFORT}"} \
+  ${JAMINI_MODEL:+-e JAMINI_MODEL="${JAMINI_MODEL}"} \
+  ${JAMINI_REASONING_EFFORT:+-e JAMINI_REASONING_EFFORT="${JAMINI_REASONING_EFFORT}"} \
   -v "${PWD}:/workspace" \
-  -v "${CONFIG_DIR}:/home/demoni/.demoni" \
+  -v "${CONFIG_DIR}:/home/jamini/.jamini" \
   "${IMAGE_NAME}:latest" \
   "$@"
 WRAPPER_EOF
 
-  chmod +x "${BIN_DIR}/demoni"
+  chmod +x "${BIN_DIR}/jamini"
 
   echo ""
   echo "╔══════════════════════════════════════════════════════════════╗"
-  echo "║  ✓ Demoni v${VERSION} installed successfully!              ║"
+  echo "║  ✓ Jamini v${VERSION} installed successfully!              ║"
   echo "╠══════════════════════════════════════════════════════════════╣"
   echo "║  Config:  ${CONFIG_DIR}"
-  echo "║  Binary:  ${BIN_DIR}/demoni"
+  echo "║  Binary:  ${BIN_DIR}/jamini"
   echo "╠══════════════════════════════════════════════════════════════╣"
   echo "║  Make sure ~/bin is in your PATH:                           ║"
   echo "║    export PATH=\"\${HOME}/bin:\${PATH}\"                   ║"
@@ -277,7 +277,7 @@ WRAPPER_EOF
   echo "║    export DEEPSEEK_API_KEY=\"sk-...\"                        ║"
   echo "║                                                              ║"
   echo "║  Then run:                                                   ║"
-  echo "║    demoni --help                                             ║"
+  echo "║    jamini --help                                             ║"
   echo "╚══════════════════════════════════════════════════════════════╝"
   echo ""
 
@@ -293,12 +293,12 @@ WRAPPER_EOF
 # ── uninstall ────────────────────────────────────────────────────
 
 cmd_uninstall() {
-  info "Removing Demoni..."
-  rm -f "${BIN_DIR}/demoni"
+  info "Removing Jamini..."
+  rm -f "${BIN_DIR}/jamini"
   rm -rf "${CONFIG_DIR}"
-  echo "✓ Demoni uninstalled."
+  echo "✓ Jamini uninstalled."
   echo "  To also remove the container image:"
-  echo "    ${CONTAINER_ENGINE:-docker} rmi demoni:latest demoni:v${VERSION}"
+  echo "    ${CONTAINER_ENGINE:-docker} rmi jamini:latest jamini:v${VERSION}"
 }
 
 # ── smoke ────────────────────────────────────────────────────────
@@ -371,7 +371,7 @@ case "${1:-}" in
     if [[ $# -eq 0 ]]; then
       cmd_help
     else
-      error "Unknown command: $1\nRun ./demoni help for usage."
+      error "Unknown command: $1\nRun ./jamini help for usage."
     fi
     ;;
 esac

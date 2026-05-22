@@ -68,7 +68,7 @@ describe('Bridge Privacy - Model Denylist', () => {
     try {
       resolveModel('gemini-pro');
     } catch (e: any) {
-      expect(e.message).toMatch(/DeepSeek|Demoni/i);
+      expect(e.message).toMatch(/DeepSeek|Jamini/i);
     }
   });
 });

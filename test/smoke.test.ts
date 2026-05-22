@@ -67,7 +67,7 @@ function startMockDeepSeek(): Promise<{ server: Server; baseUrl: string }> {
   });
 }
 
-describe('Demoni Smoke Test', () => {
+describe('Jamini Smoke Test', () => {
   beforeAll(async () => {
     const mock = await startMockDeepSeek();
     mockServer = mock.server;
@@ -80,14 +80,14 @@ describe('Demoni Smoke Test', () => {
     bridgeProcess = spawn('node', [BRIDGE_SCRIPT], {
       env: {
         ...process.env,
-        DEMONI_BRIDGE_PORT: String(port),
-        DEMONI_BRIDGE_AUTO_START: "1",
-        DEMONI_BRIDGE_HOST: '127.0.0.1',
-        DEMONI_BRIDGE_LOCAL_API_KEY: 'smoke-test-key',
+        JAMINI_BRIDGE_PORT: String(port),
+        JAMINI_BRIDGE_AUTO_START: "1",
+        JAMINI_BRIDGE_HOST: '127.0.0.1',
+        JAMINI_BRIDGE_LOCAL_API_KEY: 'smoke-test-key',
         DEEPSEEK_API_KEY: 'sk-smoke-test',
         DEEPSEEK_API_BASE: mockDeepSeekBaseUrl,
-        DEMONI_MODEL: 'v4-flash',
-        DEMONI_REQUEST_MAX_RETRIES: '0',
+        JAMINI_MODEL: 'v4-flash',
+        JAMINI_REQUEST_MAX_RETRIES: '0',
         BRAVE_API_KEY: '',
         UNSTRUCTURED_API_KEY: '',
       },

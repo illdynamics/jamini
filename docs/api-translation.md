@@ -1,6 +1,6 @@
 # API Translation
 
-The Demoni bridge accepts **Gemini GenerateContent**-compatible requests on the inbound side and translates them to **DeepSeek OpenAI-compatible Chat Completions** on the outbound side. Responses are translated back to Gemini format.
+The Jamini bridge accepts **Gemini GenerateContent**-compatible requests on the inbound side and translates them to **DeepSeek OpenAI-compatible Chat Completions** on the outbound side. Responses are translated back to Gemini format.
 
 ## Endpoint Mapping
 
@@ -24,7 +24,7 @@ User-facing model IDs are translated to DeepSeek provider models:
 | `v4-pro` | `deepseek-v4-pro` | disabled (`thinking: { type: "disabled" }`) |
 | `v4-pro-thinking` | `deepseek-v4-pro` | enabled (`thinking: { type: "enabled" }`, `reasoning_effort: high`) |
 
-Unsupported models (including Google/Gemini models) receive a 400 error: *"This is Demoni. Only DeepSeek models are available."*
+Unsupported models (including Google/Gemini models) receive a 400 error: *"This is Jamini. Only DeepSeek models are available."*
 
 ## Gemini → DeepSeek Field Mapping
 
@@ -179,10 +179,10 @@ The estimate is based on character-count heuristics and is documented as approxi
 
 | Connection | Auth Mechanism |
 |---|---|
-| Gemini CLI → Bridge | `Authorization: Bearer {DEMONI_BRIDGE_LOCAL_API_KEY}` (local proxy key) |
+| Gemini CLI → Bridge | `Authorization: Bearer {JAMINI_BRIDGE_LOCAL_API_KEY}` (local proxy key) |
 | Bridge → DeepSeek | `Authorization: Bearer {DEEPSEEK_API_KEY}` |
 
-The local proxy key is a random UUID generated once per `~/.demoni` home and stored in `~/.demoni/run/.local-proxy-key`.
+The local proxy key is a random UUID generated once per `~/.jamini` home and stored in `~/.jamini/run/.local-proxy-key`.
 
 ## Unsupported Features
 

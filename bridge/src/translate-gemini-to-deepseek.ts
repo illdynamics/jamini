@@ -70,16 +70,16 @@ export function translateGeminiToDeepSeek(
 ): DeepSeekRequest {
   // ── Guard: unsupported media ──────────────────────────────────────
   if (geminiReq.cachedContent) {
-    throw new Error('cachedContent is not supported by Demoni bridge');
+    throw new Error('cachedContent is not supported by Jamini bridge');
   }
 
   for (const content of geminiReq.contents) {
     for (const part of content.parts) {
       if (part.inlineData) {
-        throw new Error('inlineData is not supported by Demoni bridge');
+        throw new Error('inlineData is not supported by Jamini bridge');
       }
       if (part.fileData) {
-        throw new Error('fileData is not supported by Demoni bridge');
+        throw new Error('fileData is not supported by Jamini bridge');
       }
     }
   }
@@ -87,7 +87,7 @@ export function translateGeminiToDeepSeek(
   const messages: DeepSeekMessage[] = [];
 
   // 1. System instruction → first system message
-  // Demoni system prompt takes priority, then Gemini system instruction
+  // Jamini system prompt takes priority, then Gemini system instruction
   let systemParts: string[] = [];
   if (systemPrompt) {
     systemParts.push(systemPrompt);

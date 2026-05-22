@@ -1,20 +1,20 @@
 #!/usr/bin/env node
 
 /**
- * Demoni CLI — drop-in Gemini CLI replacement routing to DeepSeek V4.
+ * Jamini CLI — drop-in Gemini CLI replacement routing to DeepSeek V4.
  *
  * Usage:
- *   demoni [same flags and args as gemini]
+ *   jamini [same flags and args as gemini]
  *
- * Bridge modes (DEMONI_BRIDGE_MODE):
+ * Bridge modes (JAMINI_BRIDGE_MODE):
  *   auto      – try process, fall back to container if runtime available
  *   process   – start bridge as local child process (default path)
- *   external  – use DEMONI_BRIDGE_URL, don't start/stop anything
+ *   external  – use JAMINI_BRIDGE_URL, don't start/stop anything
  *   container – start bridge in Docker/Podman
  *
- * Translator modes (DEMONI_TRANSLATOR_MODE):
+ * Translator modes (JAMINI_TRANSLATOR_MODE):
  *   auto    – use custom bridge
- *   custom  – Demoni TypeScript Gemini→DeepSeek bridge
+ *   custom  – Jamini TypeScript Gemini→DeepSeek bridge
  */
 
 import { spawn, execSync, spawnSync, type ChildProcess } from 'node:child_process';
@@ -35,7 +35,7 @@ import http from 'node:http';
 import crypto from 'node:crypto';
 
 import dotenv from 'dotenv';
-import { loadConfig, updateConfig, type DemoniConfig, type BridgeMode, type TranslatorMode } from './config.js';
+import { loadConfig, updateConfig, type JaminiConfig, type BridgeMode, type TranslatorMode } from './config.js';
 import { filterStderrLine } from './stderr-filter.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -43,13 +43,13 @@ const __dirname = dirname(__filename);
 
 // ── Debug & logging ────────────────────────────────────────────────
 
-const DEBUG = process.env.DEMONI_DEBUG === '1' || process.argv.includes('--debug');
+const DEBUG = process.env.JAMINI_DEBUG === '1' || process.argv.includes('--debug');
 let logStream: WriteStream | null = null;
 
 // ── Logging redaction ──────────────────────────────────────────────
 const REDACT_PATTERNS: Array<[RegExp, string]> = [
   [/sk-[a-zA-Z0-9_-]{20,}/g, '[REDACTED:API_KEY]'],
-  [/(?:DEEPSEEK_API_KEY|GEMINI_API_KEY|BRAVE_API_KEY|UNSTRUCTURED_API_KEY|DEMONI_BRIDGE_LOCAL_API_KEY)=([^\s,;]+)/gi, '$1=[REDACTED]'],
+  [/(?:DEEPSEEK_API_KEY|GEMINI_API_KEY|BRAVE_API_KEY|UNSTRUCTURED_API_KEY|JAMINI_BRIDGE_LOCAL_API_KEY)=([^\s,;]+)/gi, '$1=[REDACTED]'],
   [/Bearer\s+\S+/gi, 'Bearer [REDACTED]'],
 ];
 
@@ -83,9 +83,9 @@ function redactLog(input: string): string {
 function logFile(msg: string): void {
   try {
     if (!logStream) {
-      const logDir = join(getDemoniHome(), 'log');
+      const logDir = join(getJaminiHome(), 'log');
       mkdirSync(logDir, { recursive: true, mode: 0o700 });
-      logStream = createWriteStream(join(logDir, 'demoni.log'), { flags: 'a', mode: 0o600 });
+      logStream = createWriteStream(join(logDir, 'jamini.log'), { flags: 'a', mode: 0o600 });
     }
     const ts = new Date().toISOString();
     logStream.write(`[${ts}] ${redactLog(msg)}\n`);
@@ -97,21 +97,21 @@ function logFile(msg: string): void {
 function log(...args: unknown[]): void {
   const msg = args.map((a) => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ');
   const redacted = redactLog(msg);
-  if (DEBUG) console.error('[demoni]', redacted);
+  if (DEBUG) console.error('[jamini]', redacted);
   logFile('[debug] ' + redacted);
 }
 
 function warn(...args: unknown[]): void {
   const msg = args.map((a) => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ');
   const redacted = redactLog(msg);
-  console.error('[demoni:warn]', redacted);
+  console.error('[jamini:warn]', redacted);
   logFile('[warn] ' + redacted);
 }
 
 function die(...args: unknown[]): never {
   const msg = args.map((a) => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ');
   const redacted = redactLog(msg);
-  console.error('[demoni:error]', redacted);
+  console.error('[jamini:error]', redacted);
   logFile('[error] ' + redacted);
   process.exit(1);
 }
@@ -124,7 +124,7 @@ function findRepoRoot(): string {
     if (existsSync(join(dir, 'package.json'))) {
       try {
         const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'));
-        if (pkg.name === 'demoni') return dir;
+        if (pkg.name === 'jamini') return dir;
       } catch {}
     }
     const parent = dirname(dir);
@@ -139,19 +139,19 @@ function findRepoRoot(): string {
 const REPO_ROOT = findRepoRoot();
 const BRIDGE_SCRIPT = join(REPO_ROOT, 'bridge', 'dist', 'server.js');
 
-function getDemoniHome(): string {
-  return process.env.DEMONI_HOME || join(homedir(), '.demoni');
+function getJaminiHome(): string {
+  return process.env.JAMINI_HOME || join(homedir(), '.jamini');
 }
 
-const DEMONI_HOME = getDemoniHome();
-const GEMINI_CLI_HOME = process.env.GEMINI_CLI_HOME || join(DEMONI_HOME, 'gemini-cli-home');
+const JAMINI_HOME = getJaminiHome();
+const GEMINI_CLI_HOME = process.env.GEMINI_CLI_HOME || join(JAMINI_HOME, 'gemini-cli-home');
 
 function getLocalProxyKey(): string {
   // Use env override if set, otherwise generate a random key
-  if (process.env.DEMONI_LOCAL_PROXY_KEY) return process.env.DEMONI_LOCAL_PROXY_KEY;
-  if (process.env.DEMONI_BRIDGE_LOCAL_API_KEY) return process.env.DEMONI_BRIDGE_LOCAL_API_KEY;
-  // Generate a stable key once per DEMONI_HOME
-  const keyFile = join(DEMONI_HOME, 'run', '.local-proxy-key');
+  if (process.env.JAMINI_LOCAL_PROXY_KEY) return process.env.JAMINI_LOCAL_PROXY_KEY;
+  if (process.env.JAMINI_BRIDGE_LOCAL_API_KEY) return process.env.JAMINI_BRIDGE_LOCAL_API_KEY;
+  // Generate a stable key once per JAMINI_HOME
+  const keyFile = join(JAMINI_HOME, 'run', '.local-proxy-key');
   try {
     if (existsSync(keyFile)) {
       return readFileSync(keyFile, 'utf8').trim();
@@ -159,7 +159,7 @@ function getLocalProxyKey(): string {
   } catch {}
   const key = crypto.randomUUID();
   try {
-    mkdirSync(join(DEMONI_HOME, 'run'), { recursive: true, mode: 0o700 });
+    mkdirSync(join(JAMINI_HOME, 'run'), { recursive: true, mode: 0o700 });
     writeFileSync(keyFile, key + '\n', { mode: 0o600 });
   } catch {}
   return key;
@@ -183,10 +183,10 @@ function isHelpOrVersion(args: string[]): boolean {
 
 // ── Directory setup ─────────────────────────────────────────────────
 
-function ensureDemoniDirs(): void {
+function ensureJaminiDirs(): void {
   const dirs = [
-    join(DEMONI_HOME, 'run'),
-    join(DEMONI_HOME, 'log'),
+    join(JAMINI_HOME, 'run'),
+    join(JAMINI_HOME, 'log'),
     GEMINI_CLI_HOME,
   ];
   for (const d of dirs) {
@@ -197,7 +197,7 @@ function ensureDemoniDirs(): void {
 // ── PID file management ─────────────────────────────────────────────
 
 function pidFilePath(): string {
-  return join(DEMONI_HOME, 'run', 'bridge.pid');
+  return join(JAMINI_HOME, 'run', 'bridge.pid');
 }
 
 function writePidFile(pid: number): void {
@@ -245,7 +245,7 @@ function removePidFile(): void {
 
 // ── Gemini CLI settings ─────────────────────────────────────────────
 
-function writeGeminiSettings(cfg: DemoniConfig): void {
+function writeGeminiSettings(cfg: JaminiConfig): void {
   const settingsDir = join(GEMINI_CLI_HOME, '.gemini');
   mkdirSync(settingsDir, { recursive: true, mode: 0o700 });
 
@@ -271,7 +271,7 @@ function writeGeminiSettings(cfg: DemoniConfig): void {
   log('Gemini settings written to', settingsPath);
 }
 
-function buildGeminiEnv(bridgeUrl: string, cfg: DemoniConfig): Record<string, string> {
+function buildGeminiEnv(bridgeUrl: string, cfg: JaminiConfig): Record<string, string> {
   const safeEnv: Record<string, string> = {};
 
   // Minimal runtime
@@ -283,7 +283,7 @@ function buildGeminiEnv(bridgeUrl: string, cfg: DemoniConfig): Record<string, st
   safeEnv.USER = process.env.USER || '';
   safeEnv.TMPDIR = process.env.TMPDIR || '/tmp';
 
-  // Demoni bridge routing
+  // Jamini bridge routing
   safeEnv.GEMINI_CLI_HOME = GEMINI_CLI_HOME;
   safeEnv.GEMINI_API_KEY = BRIDGE_LOCAL_API_KEY;
   safeEnv.GOOGLE_GEMINI_BASE_URL = bridgeUrl;
@@ -324,17 +324,17 @@ function buildGeminiEnv(bridgeUrl: string, cfg: DemoniConfig): Record<string, st
   safeEnv.NPM_CONFIG_AUDIT = 'false';
   safeEnv.NPM_CONFIG_FUND = 'false';
 
-  // Pass through Demoni config to bridge
+  // Pass through Jamini config to bridge
   safeEnv.DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || '';
   safeEnv.DEEPSEEK_BASE_URL = cfg.deepseekBaseUrl;
-  safeEnv.DEMONI_BRIDGE_LOCAL_API_KEY = BRIDGE_LOCAL_API_KEY;
-  safeEnv.DEMONI_BRIDGE_PORT = String(bridgePort);
-  safeEnv.DEMONI_BRIDGE_HOST = '127.0.0.1';
-  safeEnv.DEMONI_BRIDGE_AUTO_START = '1';
-  safeEnv.DEMONI_MODEL = process.env.DEMONI_MODEL || cfg.defaultModel;
-  safeEnv.DEMONI_THINKING = process.env.DEMONI_THINKING || '';
-  safeEnv.DEMONI_REASONING_EFFORT = process.env.DEMONI_REASONING_EFFORT || 'high';
-  safeEnv.DEMONI_SYSTEM_PROMPT = process.env.DEMONI_SYSTEM_PROMPT || cfg.systemPrompt || '';
+  safeEnv.JAMINI_BRIDGE_LOCAL_API_KEY = BRIDGE_LOCAL_API_KEY;
+  safeEnv.JAMINI_BRIDGE_PORT = String(bridgePort);
+  safeEnv.JAMINI_BRIDGE_HOST = '127.0.0.1';
+  safeEnv.JAMINI_BRIDGE_AUTO_START = '1';
+  safeEnv.JAMINI_MODEL = process.env.JAMINI_MODEL || cfg.defaultModel;
+  safeEnv.JAMINI_THINKING = process.env.JAMINI_THINKING || '';
+  safeEnv.JAMINI_REASONING_EFFORT = process.env.JAMINI_REASONING_EFFORT || 'high';
+  safeEnv.JAMINI_SYSTEM_PROMPT = process.env.JAMINI_SYSTEM_PROMPT || cfg.systemPrompt || '';
   // Only pass Brave/Unstructured if explicitly on
   safeEnv.BRAVE_API_KEY = process.env.BRAVE_API_KEY || '';
   safeEnv.UNSTRUCTURED_API_KEY = process.env.UNSTRUCTURED_API_KEY || '';
@@ -408,13 +408,13 @@ function sleep(ms: number): Promise<void> {
 
 let bridgeProcess: ChildProcess | null = null;
 
-async function startProcessBridge(cfg: DemoniConfig): Promise<string> {
-  bridgePort = parseInt(process.env.DEMONI_BRIDGE_PORT || '0', 10) || await findFreePort();
+async function startProcessBridge(cfg: JaminiConfig): Promise<string> {
+  bridgePort = parseInt(process.env.JAMINI_BRIDGE_PORT || '0', 10) || await findFreePort();
   const url = `http://127.0.0.1:${bridgePort}`;
   log('Starting process bridge on', url);
 
   // Open bridge log file
-  const logDir = join(DEMONI_HOME, 'log');
+  const logDir = join(JAMINI_HOME, 'log');
   const bridgeLogPath = join(logDir, 'bridge.log');
   const bridgeLogStream = createWriteStream(bridgeLogPath, { flags: 'a', mode: 0o600 });
 
@@ -428,18 +428,18 @@ async function startProcessBridge(cfg: DemoniConfig): Promise<string> {
     NODE_ENV: process.env.NODE_ENV || '',
     TMPDIR: process.env.TMPDIR || '/tmp',
 
-    DEMONI_BRIDGE_LOCAL_API_KEY: BRIDGE_LOCAL_API_KEY,
-    DEMONI_BRIDGE_PORT: String(bridgePort),
-    DEMONI_BRIDGE_HOST: '127.0.0.1',
-    DEMONI_BRIDGE_AUTO_START: '1',
-    DEMONI_MODEL: process.env.DEMONI_MODEL || cfg.defaultModel,
+    JAMINI_BRIDGE_LOCAL_API_KEY: BRIDGE_LOCAL_API_KEY,
+    JAMINI_BRIDGE_PORT: String(bridgePort),
+    JAMINI_BRIDGE_HOST: '127.0.0.1',
+    JAMINI_BRIDGE_AUTO_START: '1',
+    JAMINI_MODEL: process.env.JAMINI_MODEL || cfg.defaultModel,
     DEEPSEEK_API_KEY: process.env.DEEPSEEK_API_KEY || '',
     DEEPSEEK_BASE_URL: cfg.deepseekBaseUrl,
-    DEMONI_HOME: DEMONI_HOME,
-    DEMONI_BRIDGE_LOG_LEVEL: process.env.DEMONI_BRIDGE_LOG_LEVEL || 'info',
-    DEMONI_REASONING_EFFORT: process.env.DEMONI_REASONING_EFFORT || 'high',
-    DEMONI_SYSTEM_PROMPT: process.env.DEMONI_SYSTEM_PROMPT || cfg.systemPrompt || '',
-    DEMONI_THINKING: process.env.DEMONI_THINKING || '',
+    JAMINI_HOME: JAMINI_HOME,
+    JAMINI_BRIDGE_LOG_LEVEL: process.env.JAMINI_BRIDGE_LOG_LEVEL || 'info',
+    JAMINI_REASONING_EFFORT: process.env.JAMINI_REASONING_EFFORT || 'high',
+    JAMINI_SYSTEM_PROMPT: process.env.JAMINI_SYSTEM_PROMPT || cfg.systemPrompt || '',
+    JAMINI_THINKING: process.env.JAMINI_THINKING || '',
 
     GEMINI_API_KEY: '',
     GOOGLE_APPLICATION_CREDENTIALS: '',
@@ -552,7 +552,7 @@ async function stopProcessBridge(): Promise<void> {
 
 function getExternalBridgeUrl(): string {
   return (
-    process.env.DEMONI_BRIDGE_URL ||
+    process.env.JAMINI_BRIDGE_URL ||
     process.env.GOOGLE_GEMINI_BASE_URL ||
     'http://127.0.0.1:7654'
   );
@@ -596,35 +596,35 @@ function findContainerRuntime(): string | null {
   return null;
 }
 
-async function startContainerBridge(cfg: DemoniConfig): Promise<string> {
+async function startContainerBridge(cfg: JaminiConfig): Promise<string> {
   const runtime = findContainerRuntime();
   if (!runtime) {
     die(
-      'Container bridge mode requires Docker or Podman. Install one or use DEMONI_BRIDGE_MODE=process.',
+      'Container bridge mode requires Docker or Podman. Install one or use JAMINI_BRIDGE_MODE=process.',
     );
   }
 
-  bridgePort = parseInt(process.env.DEMONI_BRIDGE_PORT || '0', 10) || await findFreePort();
+  bridgePort = parseInt(process.env.JAMINI_BRIDGE_PORT || '0', 10) || await findFreePort();
   const url = `http://127.0.0.1:${bridgePort}`;
 
   log('Starting container bridge with', runtime, 'on port', bridgePort);
 
   // Build the docker/podman run command
-  const imageName = process.env.DEMONI_CONTAINER_IMAGE || 'demoni:latest';
-  const extraArgs = process.env.DEMONI_CONTAINER_EXTRA_ARGS || '';
+  const imageName = process.env.JAMINI_CONTAINER_IMAGE || 'jamini:latest';
+  const extraArgs = process.env.JAMINI_CONTAINER_EXTRA_ARGS || '';
 
   const args: string[] = [
     'run',
     '--rm',
-    '--name', `demoni-bridge-${bridgePort}`,
+    '--name', `jamini-bridge-${bridgePort}`,
     '--entrypoint', 'node',
     '-p', `127.0.0.1:${bridgePort}:${bridgePort}`,
-    '-e', `DEMONI_BRIDGE_PORT=${bridgePort}`,
-    '-e', `DEMONI_BRIDGE_HOST=0.0.0.0`,
-    '-e', `DEMONI_BRIDGE_LOCAL_API_KEY=${BRIDGE_LOCAL_API_KEY}`,
+    '-e', `JAMINI_BRIDGE_PORT=${bridgePort}`,
+    '-e', `JAMINI_BRIDGE_HOST=0.0.0.0`,
+    '-e', `JAMINI_BRIDGE_LOCAL_API_KEY=${BRIDGE_LOCAL_API_KEY}`,
     '-e', `DEEPSEEK_API_KEY=${process.env.DEEPSEEK_API_KEY || ''}`,
     '-e', `DEEPSEEK_BASE_URL=${cfg.deepseekBaseUrl}`,
-    '-e', `DEMONI_MODEL=${process.env.DEMONI_MODEL || cfg.defaultModel}`,
+    '-e', `JAMINI_MODEL=${process.env.JAMINI_MODEL || cfg.defaultModel}`,
     '-e', `BRAVE_API_KEY=${process.env.BRAVE_API_KEY || ''}`,
     '-e', `UNSTRUCTURED_API_KEY=${process.env.UNSTRUCTURED_API_KEY || ''}`,
     '--init',
@@ -634,7 +634,7 @@ async function startContainerBridge(cfg: DemoniConfig): Promise<string> {
     args.push(...extraArgs.split(' ').filter(Boolean));
   }
 
-  args.push(imageName, '/opt/demoni/bridge/dist/server.js');
+  args.push(imageName, '/opt/jamini/bridge/dist/server.js');
 
   const containerProcess = spawn(runtime, args, {
     stdio: DEBUG ? 'inherit' : ['ignore', 'pipe', 'pipe'],
@@ -642,7 +642,7 @@ async function startContainerBridge(cfg: DemoniConfig): Promise<string> {
   });
 
   // Log container output
-  const logDir = join(DEMONI_HOME, 'log');
+  const logDir = join(JAMINI_HOME, 'log');
   const containerLogPath = join(logDir, 'container-bridge.log');
   const containerLogStream = createWriteStream(containerLogPath, { flags: 'a', mode: 0o600 });
   const ts = new Date().toISOString();
@@ -679,11 +679,11 @@ async function stopContainerBridge(): Promise<void> {
 
 // ── Bridge management — auto mode ────────────────────────────────────
 
-async function startBridgeAuto(cfg: DemoniConfig): Promise<string> {
+async function startBridgeAuto(cfg: JaminiConfig): Promise<string> {
   let mode: BridgeMode = 'process';
 
-  // Check if DEMONI_BRIDGE_URL is set — implies external
-  if (process.env.DEMONI_BRIDGE_URL || process.env.GOOGLE_GEMINI_BASE_URL) {
+  // Check if JAMINI_BRIDGE_URL is set — implies external
+  if (process.env.JAMINI_BRIDGE_URL || process.env.GOOGLE_GEMINI_BASE_URL) {
     mode = 'external';
   }
 
@@ -702,7 +702,7 @@ async function startBridgeAuto(cfg: DemoniConfig): Promise<string> {
           die('Both process and container bridge modes failed:', err2);
         }
       }
-      die('Process bridge mode failed and no container runtime found. Install Docker/Podman or set DEMONI_BRIDGE_MODE=external.');
+      die('Process bridge mode failed and no container runtime found. Install Docker/Podman or set JAMINI_BRIDGE_MODE=external.');
     }
   }
   // Unreachable normally but kept for clarity
@@ -711,11 +711,11 @@ async function startBridgeAuto(cfg: DemoniConfig): Promise<string> {
 
 // ── Translator mode resolution ──────────────────────────────────────
 
-function resolveTranslatorMode(cfg: DemoniConfig): TranslatorMode {
+function resolveTranslatorMode(cfg: JaminiConfig): TranslatorMode {
   let mode = cfg.translatorMode;
   if (mode === 'auto') mode = 'custom';
   if (mode === 'litellm') {
-    die('LiteLLM translator mode is not yet implemented. Use DEMONI_TRANSLATOR_MODE=custom or auto.');
+    die('LiteLLM translator mode is not yet implemented. Use JAMINI_TRANSLATOR_MODE=custom or auto.');
   }
   if (mode !== 'custom') {
     die(`Unsupported translator mode: ${mode}. Use: auto, custom, or litellm.`);
@@ -727,7 +727,7 @@ function resolveTranslatorMode(cfg: DemoniConfig): TranslatorMode {
 
 let actualBridgeMode: BridgeMode = 'process';
 
-async function startBridge(cfg: DemoniConfig): Promise<string> {
+async function startBridge(cfg: JaminiConfig): Promise<string> {
   let mode = cfg.bridgeMode;
   if (mode === 'auto') {
     actualBridgeMode = 'auto';
@@ -771,13 +771,13 @@ async function stopBridge(): Promise<void> {
 
 function findGeminiCli(): string {
   // 1. Explicit override from env
-  const override = process.env.DEMONI_GEMINI_BIN;
+  const override = process.env.JAMINI_GEMINI_BIN;
   if (override) {
     if (existsSync(override)) {
-      log('Using DEMONI_GEMINI_BIN override:', override);
+      log('Using JAMINI_GEMINI_BIN override:', override);
       return override;
     }
-    die('DEMONI_GEMINI_BIN is set but file not found:', override);
+    die('JAMINI_GEMINI_BIN is set but file not found:', override);
   }
 
   // 2. Local node_modules from @google/gemini-cli dependency
@@ -821,11 +821,11 @@ function findGeminiCli(): string {
   // 5. Fatal: not found
   die(
     'Upstream Gemini CLI binary was not found.',
-    'Demoni wraps unmodified Gemini CLI and needs @google/gemini-cli available.',
+    'Jamini wraps unmodified Gemini CLI and needs @google/gemini-cli available.',
     'Try:',
     '  npm install',
     '  npm install -g @google/gemini-cli',
-    'or set DEMONI_GEMINI_BIN=/path/to/gemini',
+    'or set JAMINI_GEMINI_BIN=/path/to/gemini',
   );
 }
 
@@ -835,7 +835,7 @@ function spawnGeminiCli(
   geminiPath: string,
   args: string[],
   bridgeUrl: string,
-  cfg: DemoniConfig,
+  cfg: JaminiConfig,
 ): Promise<number> {
   return new Promise((resolve, reject) => {
     const env = buildGeminiEnv(bridgeUrl, cfg);
@@ -902,7 +902,7 @@ function validateModelArg(args: string[]): void {
 
     if (model && !SUPPORTED_MODELS.has(model)) {
       die(
-        `Unsupported Demoni model: ${model}\n`,
+        `Unsupported Jamini model: ${model}\n`,
         'Choose one of: v4-flash, v4-flash-thinking, v4-pro, v4-pro-thinking',
       );
     }
@@ -911,14 +911,14 @@ function validateModelArg(args: string[]): void {
 
 // ── System subcommand ────────────────────────────────────────────────
 
-function handleSystemSubcommand(args: string[], cfg: DemoniConfig): void {
+function handleSystemSubcommand(args: string[], cfg: JaminiConfig): void {
   const sub = args[0];
   
   if (sub === 'add') {
-    // demoni system add -f <file>
+    // jamini system add -f <file>
     const fileIdx = args.indexOf('-f') !== -1 ? args.indexOf('-f') : args.indexOf('--file');
     if (fileIdx === -1 || !args[fileIdx + 1]) {
-      die('Usage: demoni system add -f <file.md>');
+      die('Usage: jamini system add -f <file.md>');
     }
     const filePath = args[fileIdx + 1];
     if (!existsSync(filePath)) {
@@ -940,7 +940,7 @@ function handleSystemSubcommand(args: string[], cfg: DemoniConfig): void {
 
   if (sub === 'list' || sub === 'show') {
     if (!cfg.systemPrompt) {
-      console.log('No system prompt set. Use: demoni system add -f <file.md>');
+      console.log('No system prompt set. Use: jamini system add -f <file.md>');
     } else {
       console.log(`System prompt (${cfg.systemPrompt.length} chars):`);
       console.log('──────────────────────────────────────────────');
@@ -961,22 +961,22 @@ function handleSystemSubcommand(args: string[], cfg: DemoniConfig): void {
   }
 
   if (sub === 'help') {
-    console.log(`Demoni System Subcommand
+    console.log(`Jamini System Subcommand
 
 Manage a persistent system prompt injected into every conversation.
 
 Usage:
-  demoni system add -f <file.md>     Load system prompt from file
-  demoni system list                 Show current system prompt
-  demoni system show                 Same as list
-  demoni system remove               Remove system prompt
-  demoni system help                 This help
+  jamini system add -f <file.md>     Load system prompt from file
+  jamini system list                 Show current system prompt
+  jamini system show                 Same as list
+  jamini system remove               Remove system prompt
+  jamini system help                 This help
 
 Shortcuts:
-  demoni -U, --uncensored-mode       Load uncensored prompt from config/uncensored.md
-  demoni -u, --uncensored-off        Remove system prompt
+  jamini -U, --uncensored-mode       Load uncensored prompt from config/uncensored.md
+  jamini -u, --uncensored-off        Remove system prompt
 
-The system prompt is stored in $DEMONI_HOME/config.json and injected
+The system prompt is stored in $JAMINI_HOME/config.json and injected
 as a system instruction in every conversation via the bridge.
 `);
     process.exit(0);
@@ -986,22 +986,22 @@ as a system instruction in every conversation via the bridge.
 }
 
 
-function printHelp(cfg: DemoniConfig): void {
-  console.log(`Demoni — Gemini CLI drop-in routing to DeepSeek V4
+function printHelp(cfg: JaminiConfig): void {
+  console.log(`Jamini — Gemini CLI drop-in routing to DeepSeek V4
 
 Usage:
-  demoni [same flags and args as gemini]
+  jamini [same flags and args as gemini]
 
 Examples:
-  demoni                    # interactive mode
-  demoni "explain this code"
-  demoni -m v4-flash "quick question"
-  demoni -m v4-flash-thinking "think through this bug"
-  demoni -m v4-pro "refactor this file"
-  demoni -y -m v4-pro-thinking "fix all tests"
-  demoni --approval-mode=yolo -m v4-pro-thinking
+  jamini                    # interactive mode
+  jamini "explain this code"
+  jamini -m v4-flash "quick question"
+  jamini -m v4-flash-thinking "think through this bug"
+  jamini -m v4-pro "refactor this file"
+  jamini -y -m v4-pro-thinking "fix all tests"
+  jamini --approval-mode=yolo -m v4-pro-thinking
 
-Demoni Models:
+Jamini Models:
   v4-flash             Fast daily coding (non-thinking)
   v4-flash-thinking    Fast reasoning, debugging (thinking)
   v4-pro               Heavy coding, reviews (non-thinking)
@@ -1010,38 +1010,38 @@ Demoni Models:
 Default model: ${cfg.defaultModel}
 
 System Prompt:
-  demoni system add -f <file.md>   Load persistent system prompt
-  demoni system list               Show current system prompt
-  demoni system remove             Clear system prompt
-  demoni -U, --uncensored-mode     Quick-load uncensored prompt
-  demoni -u, --uncensored-off      Disable uncensored mode
+  jamini system add -f <file.md>   Load persistent system prompt
+  jamini system list               Show current system prompt
+  jamini system remove             Clear system prompt
+  jamini -U, --uncensored-mode     Quick-load uncensored prompt
+  jamini -u, --uncensored-off      Disable uncensored mode
 
-Bridge Modes (DEMONI_BRIDGE_MODE):
+Bridge Modes (JAMINI_BRIDGE_MODE):
   auto       Try process, fall back to container (default)
   process    Local child process (preferred)
   container  Docker/Podman container
-  external   User-managed bridge (set DEMONI_BRIDGE_URL)
+  external   User-managed bridge (set JAMINI_BRIDGE_URL)
 
-Translator Modes (DEMONI_TRANSLATOR_MODE):
+Translator Modes (JAMINI_TRANSLATOR_MODE):
   auto       Use custom bridge (default)
-  custom     Demoni TypeScript Gemini→DeepSeek bridge
+  custom     Jamini TypeScript Gemini→DeepSeek bridge
 
 Environment:
   DEEPSEEK_API_KEY       Required. Your DeepSeek API key.
-  DEMONI_MODEL           Default model to use.
-  DEMONI_HOME            Demoni config directory (default ~/.demoni).
-  DEMONI_DEBUG=1         Enable debug logging.
-  DEMONI_BRIDGE_MODE     Bridge launch mode (auto|process|container|external).
-  DEMONI_BRIDGE_URL      External bridge URL (required for external mode).
-  DEMONI_BRIDGE_PORT     Fixed bridge port (default: ephemeral).
-  DEMONI_TRANSLATOR_MODE Translator implementation (auto|custom).
+  JAMINI_MODEL           Default model to use.
+  JAMINI_HOME            Jamini config directory (default ~/.jamini).
+  JAMINI_DEBUG=1         Enable debug logging.
+  JAMINI_BRIDGE_MODE     Bridge launch mode (auto|process|container|external).
+  JAMINI_BRIDGE_URL      External bridge URL (required for external mode).
+  JAMINI_BRIDGE_PORT     Fixed bridge port (default: ephemeral).
+  JAMINI_TRANSLATOR_MODE Translator implementation (auto|custom).
   BRAVE_API_KEY          Optional. Enable web search tool.
   UNSTRUCTURED_API_KEY   Optional. Enable document extraction tool.
 
 YOLO / Dangerous Mode:
-  demoni -y ...
-  demoni --yolo ...
-  demoni --approval-mode=yolo ...
+  jamini -y ...
+  jamini --yolo ...
+  jamini --approval-mode=yolo ...
   ⚠  Only use in disposable VMs/containers/trusted workspaces.
 
 Gemini CLI flags not listed here are passed through unchanged.
@@ -1049,7 +1049,7 @@ Gemini CLI flags not listed here are passed through unchanged.
 }
 
 function printVersion(): void {
-  console.log('demoni v0.2.3');
+  console.log('jamini v0.2.3');
 }
 
 // ── Signal handling & cleanup ───────────────────────────────────────
@@ -1088,7 +1088,7 @@ function setupCleanup(): void {
     // Do not call log() here — logFile() may lazily create streams
     // inside a signal handler, which is unsafe.  Instead, we use
     // console.error which is signal-safe.
-    console.error('[demoni] Received SIGINT');
+    console.error('[jamini] Received SIGINT');
     
     // Fire-and-forget async cleanup; exit after timeout backstop.
     const doExit = () => {
@@ -1104,7 +1104,7 @@ function setupCleanup(): void {
   });
 
   process.on('SIGTERM', () => {
-    console.error('[demoni] Received SIGTERM');
+    console.error('[jamini] Received SIGTERM');
     const doExit = () => {
       if (bridgeProcess && !bridgeProcess.killed) {
         try { bridgeProcess.kill('SIGKILL'); } catch {}
@@ -1124,13 +1124,13 @@ function setupCleanup(): void {
   process.on('uncaughtException', (err) => {
     logFile(`[fatal] uncaughtException: ${err.message}\n${err.stack || ''}`);
     cleanup();
-    console.error('[demoni:fatal]', err);
+    console.error('[jamini:fatal]', err);
     process.exit(1);
   });
 
   process.on('unhandledRejection', (reason) => {
     logFile(`[fatal] unhandledRejection: ${String(reason)}`);
-    console.error('[demoni:fatal:rejection]', reason);
+    console.error('[jamini:fatal:rejection]', reason);
     cleanup();
     process.exit(1);
   });
@@ -1205,11 +1205,11 @@ async function main(): Promise<void> {
   }
 
   // Set up dirs and cleanup
-  ensureDemoniDirs();
+  ensureJaminiDirs();
 
   // Initialize log stream early so signal handlers never lazily create
   // it (lazy creation inside signal handlers risks deadlocks).
-  logFile('demoni startup');
+  logFile('jamini startup');
   setupCleanup();
   writeGeminiSettings(cfg);
 
@@ -1220,9 +1220,9 @@ async function main(): Promise<void> {
   const stalePid = readStalePidFile();
   if (stalePid) {
     warn('A bridge process is already running with PID', stalePid);
-    warn('If this is stale, remove', pidFilePath(), 'or set DEMONI_BRIDGE_PORT');
+    warn('If this is stale, remove', pidFilePath(), 'or set JAMINI_BRIDGE_PORT');
     // Try to use the existing bridge
-    const existingPort = parseInt(process.env.DEMONI_BRIDGE_PORT || '0', 10);
+    const existingPort = parseInt(process.env.JAMINI_BRIDGE_PORT || '0', 10);
     if (existingPort > 0) {
       const existingUrl = `http://127.0.0.1:${existingPort}`;
       if (await checkHealth(existingUrl)) {
@@ -1249,17 +1249,17 @@ async function main(): Promise<void> {
 
   // ── No-input UX check ──────────────────────────────────────────
   // When invoked with zero arguments and TTY stdin (no pipe), show
-  // a friendly Demoni-branded hint before entering interactive mode.
+  // a friendly Jamini-branded hint before entering interactive mode.
   if (args.length === 0 && process.stdin.isTTY) {
     process.stderr.write(
       '┌' + '─'.repeat(61) + '┐\n' +
-      '│  Demoni v0.2.2 — AI coding agent (DeepSeek V4)           │\n' +
+      '│  Jamini v0.2.2 — AI coding agent (DeepSeek V4)           │\n' +
       '│  Type your question or use:                              │\n' +
-      '│    demoni "your question here"                           │\n' +
-      '│    demoni --prompt "your question here"                  │\n' +
-      '│    demoni -m v4-flash "quick question"                   │\n' +
-      '│    demoni --help                                         │\n' +
-      '│  Piping: echo "question" | demoni -y                     │\n' +
+      '│    jamini "your question here"                           │\n' +
+      '│    jamini --prompt "your question here"                  │\n' +
+      '│    jamini -m v4-flash "quick question"                   │\n' +
+      '│    jamini --help                                         │\n' +
+      '│  Piping: echo "question" | jamini -y                     │\n' +
       '└' + '─'.repeat(61) + '┘\n\n',
     );
   }
@@ -1274,7 +1274,7 @@ async function main(): Promise<void> {
 }
 
 main().catch((err) => {
-  console.error('[demoni:fatal]', err);
+  console.error('[jamini:fatal]', err);
   logFile(`[fatal] ${err instanceof Error ? err.message + '\n' + (err.stack || '') : String(err)}`);
   process.exit(1);
 });

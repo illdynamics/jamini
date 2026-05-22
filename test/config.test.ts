@@ -2,13 +2,13 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { loadConfig, reloadConfig, getDemoniHome } from '../src/config.js';
+import { loadConfig, reloadConfig, getJaminiHome } from '../src/config.js';
 
-describe('DemoniConfig', () => {
-  const testHome = join(tmpdir(), 'demoni-test-config-' + Date.now());
+describe('JaminiConfig', () => {
+  const testHome = join(tmpdir(), 'jamini-test-config-' + Date.now());
 
   beforeEach(() => {
-    process.env.DEMONI_HOME = testHome;
+    process.env.JAMINI_HOME = testHome;
     mkdirSync(testHome, { recursive: true, mode: 0o700 });
 
     // Remove config file from previous test
@@ -18,13 +18,13 @@ describe('DemoniConfig', () => {
     }
 
     // Clear env overrides
-    delete process.env.DEMONI_MODEL;
-    delete process.env.DEMONI_BRIDGE_MODE;
-    delete process.env.DEMONI_TRANSLATOR_MODE;
+    delete process.env.JAMINI_MODEL;
+    delete process.env.JAMINI_BRIDGE_MODE;
+    delete process.env.JAMINI_TRANSLATOR_MODE;
     delete process.env.DEEPSEEK_BASE_URL;
-    delete process.env.DEMONI_LOG_LEVEL;
-    delete process.env.DEMONI_ENABLE_BRAVE_SEARCH;
-    delete process.env.DEMONI_ENABLE_UNSTRUCTURED;
+    delete process.env.JAMINI_LOG_LEVEL;
+    delete process.env.JAMINI_ENABLE_BRAVE_SEARCH;
+    delete process.env.JAMINI_ENABLE_UNSTRUCTURED;
     delete process.env.DEEPSEEK_API_KEY;
     delete process.env.BRAVE_API_KEY;
     delete process.env.UNSTRUCTURED_API_KEY;
@@ -35,7 +35,7 @@ describe('DemoniConfig', () => {
 
   afterEach(() => {
     try { rmSync(testHome, { recursive: true, force: true }); } catch {}
-    delete process.env.DEMONI_HOME;
+    delete process.env.JAMINI_HOME;
   });
 
   it('loads default config when no file exists', () => {
@@ -58,22 +58,22 @@ describe('DemoniConfig', () => {
     expect(raw.bridgeMode).toBe('auto');
   });
 
-  it('respects DEMONI_MODEL env override', () => {
-    process.env.DEMONI_MODEL = 'v4-pro';
+  it('respects JAMINI_MODEL env override', () => {
+    process.env.JAMINI_MODEL = 'v4-pro';
     reloadConfig();
     const cfg = loadConfig();
     expect(cfg.defaultModel).toBe('v4-pro');
   });
 
-  it('respects DEMONI_BRIDGE_MODE env override', () => {
-    process.env.DEMONI_BRIDGE_MODE = 'external';
+  it('respects JAMINI_BRIDGE_MODE env override', () => {
+    process.env.JAMINI_BRIDGE_MODE = 'external';
     reloadConfig();
     const cfg = loadConfig();
     expect(cfg.bridgeMode).toBe('external');
   });
 
-  it('respects DEMONI_TRANSLATOR_MODE env override', () => {
-    process.env.DEMONI_TRANSLATOR_MODE = 'litellm';
+  it('respects JAMINI_TRANSLATOR_MODE env override', () => {
+    process.env.JAMINI_TRANSLATOR_MODE = 'litellm';
     reloadConfig();
     const cfg = loadConfig();
     expect(cfg.translatorMode).toBe('litellm');
@@ -109,7 +109,7 @@ describe('DemoniConfig', () => {
       JSON.stringify({ defaultModel: 'v4-flash' }),
       { mode: 0o600 },
     );
-    process.env.DEMONI_MODEL = 'v4-pro-thinking';
+    process.env.JAMINI_MODEL = 'v4-pro-thinking';
     reloadConfig();
     const cfg = loadConfig();
     expect(cfg.defaultModel).toBe('v4-pro-thinking');
@@ -129,11 +129,11 @@ describe('DemoniConfig', () => {
     expect(raw).not.toContain('BRAVE_API_KEY');
   });
 
-  it('getDemoniHome respects DEMONI_HOME env', () => {
-    const customHome = join(tmpdir(), 'custom-demoni-' + Date.now());
-    process.env.DEMONI_HOME = customHome;
+  it('getJaminiHome respects JAMINI_HOME env', () => {
+    const customHome = join(tmpdir(), 'custom-jamini-' + Date.now());
+    process.env.JAMINI_HOME = customHome;
     mkdirSync(customHome, { recursive: true });
-    expect(getDemoniHome()).toBe(customHome);
+    expect(getJaminiHome()).toBe(customHome);
     try { rmSync(customHome, { recursive: true, force: true }); } catch {}
   });
 

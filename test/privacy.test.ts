@@ -8,7 +8,7 @@ import { resolve } from 'node:path';
 const CLI_PATH = resolve(process.cwd(), 'dist/cli.js');
 
 describe('Privacy Lockdown', () => {
-  const testHome = join(tmpdir(), 'demoni-privacy-test-' + Date.now());
+  const testHome = join(tmpdir(), 'jamini-privacy-test-' + Date.now());
   const geminiCliHome = join(testHome, 'gemini-cli-home');
 
   beforeAll(() => {
@@ -27,7 +27,7 @@ describe('Privacy Lockdown', () => {
     const child = spawn('node', [CLI_PATH, '-m', 'v4-flash', 'hello'], {
       env: {
         ...process.env,
-        DEMONI_HOME: testHome,
+        JAMINI_HOME: testHome,
         GEMINI_CLI_HOME: geminiCliHome,
         DEEPSEEK_API_KEY: 'sk-test-key-1234567890',
       },
@@ -75,7 +75,7 @@ describe('Privacy Lockdown', () => {
   it('accepts v4-flash model (DeepSeek still works)', async () => {
     const result = await runCli(
       ['-m', 'v4-flash', '--help'],
-      { DEMONI_HOME: testHome, GEMINI_CLI_HOME: geminiCliHome },
+      { JAMINI_HOME: testHome, GEMINI_CLI_HOME: geminiCliHome },
     );
     expect(result.exitCode).toBe(0);
   });
@@ -84,7 +84,7 @@ describe('Privacy Lockdown', () => {
   it('rejects gemini-pro model', async () => {
     const result = await runCli(
       ['-m', 'gemini-pro', 'hello'],
-      { DEMONI_HOME: testHome, GEMINI_CLI_HOME: geminiCliHome },
+      { JAMINI_HOME: testHome, GEMINI_CLI_HOME: geminiCliHome },
     );
     expect(result.exitCode).toBe(1);
     expect(result.stderr + result.stdout).toMatch(/Unsupported|unsupported/i);
@@ -93,7 +93,7 @@ describe('Privacy Lockdown', () => {
   it('rejects gemini-2.5-pro model', async () => {
     const result = await runCli(
       ['-m', 'gemini-2.5-pro', 'hello'],
-      { DEMONI_HOME: testHome, GEMINI_CLI_HOME: geminiCliHome },
+      { JAMINI_HOME: testHome, GEMINI_CLI_HOME: geminiCliHome },
     );
     expect(result.exitCode).toBe(1);
   });
@@ -101,7 +101,7 @@ describe('Privacy Lockdown', () => {
   it('rejects google/gemini model', async () => {
     const result = await runCli(
       ['-m', 'google/gemini', 'hello'],
-      { DEMONI_HOME: testHome, GEMINI_CLI_HOME: geminiCliHome },
+      { JAMINI_HOME: testHome, GEMINI_CLI_HOME: geminiCliHome },
     );
     expect(result.exitCode).toBe(1);
   });
@@ -109,7 +109,7 @@ describe('Privacy Lockdown', () => {
   it('rejects vertex model', async () => {
     const result = await runCli(
       ['-m', 'vertex', 'hello'],
-      { DEMONI_HOME: testHome, GEMINI_CLI_HOME: geminiCliHome },
+      { JAMINI_HOME: testHome, GEMINI_CLI_HOME: geminiCliHome },
     );
     expect(result.exitCode).toBe(1);
   });
@@ -119,13 +119,13 @@ describe('Privacy Lockdown', () => {
     const result = await runCli(
       ['--help', '--debug'],
       {
-        DEMONI_HOME: testHome,
+        JAMINI_HOME: testHome,
         GEMINI_CLI_HOME: geminiCliHome,
         DEEPSEEK_API_KEY: 'sk-test-key-1234567890',
-        DEMONI_DEBUG: '1',
+        JAMINI_DEBUG: '1',
       },
     );
-    // The CLI logs to stderr: "[demoni] [privacy] Google/Gemini: BLOCKED | ... | Auto-update: OFF"
+    // The CLI logs to stderr: "[jamini] [privacy] Google/Gemini: BLOCKED | ... | Auto-update: OFF"
     expect(result.stderr).toMatch(/privacy/i);
     expect(result.stderr).toMatch(/BLOCKED|OFF/);
   });
@@ -135,10 +135,10 @@ describe('Privacy Lockdown', () => {
     const result = await runCli(
       ['--help', '--debug'],
       {
-        DEMONI_HOME: testHome,
+        JAMINI_HOME: testHome,
         GEMINI_CLI_HOME: geminiCliHome,
         DEEPSEEK_API_KEY: 'sk-test-key-1234567890',
-        DEMONI_DEBUG: '1',
+        JAMINI_DEBUG: '1',
       },
     );
     expect(result.stderr).toMatch(/ephemeral/i);
@@ -149,7 +149,7 @@ describe('Privacy Lockdown', () => {
     const result = await runCli(
       ['--help'],
       {
-        DEMONI_HOME: testHome,
+        JAMINI_HOME: testHome,
         GEMINI_CLI_HOME: geminiCliHome,
         DEEPSEEK_API_KEY: 'sk-test-key-1234567890',
       },

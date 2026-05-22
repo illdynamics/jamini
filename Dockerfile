@@ -1,4 +1,4 @@
-# ── Stage 1: Build Demoni Bridge ─────────────────────────────────────
+# ── Stage 1: Build Jamini Bridge ─────────────────────────────────────
 FROM node:22-bookworm-slim AS bridge-builder
 WORKDIR /app
 COPY bridge/package*.json ./
@@ -7,7 +7,7 @@ COPY bridge/tsconfig.json ./
 COPY bridge/src ./src
 RUN npx tsc
 
-# ── Stage 2: Build Demoni CLI ───────────────────────────────────────
+# ── Stage 2: Build Jamini CLI ───────────────────────────────────────
 FROM node:22-bookworm-slim AS cli-builder
 WORKDIR /app
 COPY package*.json ./
@@ -25,49 +25,49 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Directories
-WORKDIR /opt/demoni
-RUN mkdir -p bin bridge config /workspace /home/demoni/.demoni
+WORKDIR /opt/jamini
+RUN mkdir -p bin bridge config /workspace /home/jamini/.jamini
 
 # Install official Gemini CLI (global npm)
 ARG GEMINI_CLI_NPM_VERSION=0.42.0
 RUN npm install -g @google/gemini-cli@${GEMINI_CLI_NPM_VERSION}
 
-# Copy Demoni CLI
-COPY --from=cli-builder /app/dist /opt/demoni/dist
-COPY --from=cli-builder /app/node_modules /opt/demoni/node_modules
-COPY --from=cli-builder /app/package.json /opt/demoni/package.json
+# Copy Jamini CLI
+COPY --from=cli-builder /app/dist /opt/jamini/dist
+COPY --from=cli-builder /app/node_modules /opt/jamini/node_modules
+COPY --from=cli-builder /app/package.json /opt/jamini/package.json
 
-# Copy Demoni Bridge
-COPY --from=bridge-builder /app/dist /opt/demoni/bridge/dist
-COPY --from=bridge-builder /app/package.json /opt/demoni/bridge/package.json
-COPY --from=bridge-builder /app/node_modules /opt/demoni/bridge/node_modules
+# Copy Jamini Bridge
+COPY --from=bridge-builder /app/dist /opt/jamini/bridge/dist
+COPY --from=bridge-builder /app/package.json /opt/jamini/bridge/package.json
+COPY --from=bridge-builder /app/node_modules /opt/jamini/bridge/node_modules
 
 # Copy shell wrappers and config
-COPY bin/ /opt/demoni/bin/
-COPY config/ /opt/demoni/config/
-RUN chmod +x /opt/demoni/bin/*
+COPY bin/ /opt/jamini/bin/
+COPY config/ /opt/jamini/config/
+RUN chmod +x /opt/jamini/bin/*
 
-# Set up non-root demoni user
-RUN groupadd -g 10001 demoni \
-    && useradd -u 10001 --gid demoni --create-home --shell /bin/bash demoni \
-    && chown -R demoni:demoni /workspace /home/demoni /opt/demoni
+# Set up non-root jamini user
+RUN groupadd -g 10001 jamini \
+    && useradd -u 10001 --gid jamini --create-home --shell /bin/bash jamini \
+    && chown -R jamini:jamini /workspace /home/jamini /opt/jamini
 
-# Environment — bridge will pick an ephemeral port, DEMONI_BRIDGE_PORT only as fallback
-ENV PATH="/opt/demoni/bin:${PATH}" \
+# Environment — bridge will pick an ephemeral port, JAMINI_BRIDGE_PORT only as fallback
+ENV PATH="/opt/jamini/bin:${PATH}" \
     TERM="xterm-256color" \
     COLORTERM="truecolor" \
-    HOME="/home/demoni" \
-    DEMONI_HOME="/home/demoni/.demoni" \
-    DEMONI_BRIDGE_MODE="process" \
-    DEMONI_TRANSLATOR_MODE="custom" \
-    DEMONI_BRIDGE_HOST="127.0.0.1" \
-    DEMONI_GEMINI_HOME="/home/demoni/.demoni/gemini-cli-home" \
-    DEMONI_WORKDIR="/workspace" \
-    DEMONI_MODEL="v4-flash-thinking" \
-    DEMONI_REASONING_EFFORT="high"
+    HOME="/home/jamini" \
+    JAMINI_HOME="/home/jamini/.jamini" \
+    JAMINI_BRIDGE_MODE="process" \
+    JAMINI_TRANSLATOR_MODE="custom" \
+    JAMINI_BRIDGE_HOST="127.0.0.1" \
+    JAMINI_GEMINI_HOME="/home/jamini/.jamini/gemini-cli-home" \
+    JAMINI_WORKDIR="/workspace" \
+    JAMINI_MODEL="v4-flash-thinking" \
+    JAMINI_REASONING_EFFORT="high"
 
-USER demoni
+USER jamini
 WORKDIR /workspace
 
-ENTRYPOINT ["node", "/opt/demoni/dist/cli.js"]
+ENTRYPOINT ["node", "/opt/jamini/dist/cli.js"]
 CMD []

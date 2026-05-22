@@ -2,7 +2,7 @@ node_modules/
 dist/
 bridge/dist/
 *.js.map
-.demoni/
+.jamini/
 .env
 !.env.example
 .DS_Store

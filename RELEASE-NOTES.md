@@ -1,10 +1,10 @@
 ## v0.2.3 (2026-05-15)
 
 ### Features
-- **Interactive TTY**: The containerized `demoni` wrapper (`~/bin/demoni`) now conditionally allocates a TTY (`-t`) when stdin is a terminal,
-  restoring full Gemini CLI interactive mode for `demoni` and `demoni -y`. Piped input still works without TTY.
+- **Interactive TTY**: The containerized `jamini` wrapper (`~/bin/jamini`) now conditionally allocates a TTY (`-t`) when stdin is a terminal,
+  restoring full Gemini CLI interactive mode for `jamini` and `jamini -y`. Piped input still works without TTY.
 - **Smart TTY passthrough**: TTY is only passed through when the parent process has a terminal on stdin, so piped usage
-  (`echo "query" | demoni -y`) still works correctly.
+  (`echo "query" | jamini -y`) still works correctly.
 - **Host TERM passthrough**: The wrapper now forwards the host's `TERM` and `COLORTERM` environment variables into the container.
   The Docker image also sets sensible defaults (`TERM=xterm-256color`, `COLORTERM=truecolor`), eliminating both
   `256-color support not detected` and `True color support not detected` startup warnings from the Gemini CLI.
@@ -21,8 +21,8 @@
 - `package.json` — `@google/gemini-cli` 0.42.0, version 0.2.3
 - `package-lock.json` — Regenerated
 - `Dockerfile` — Added `TERM`, `COLORTERM` env vars; `GEMINI_CLI_NPM_VERSION` → 0.42.0
-- `~/bin/demoni` (installed wrapper) — `-t` flag + TERM/COLORTERM passthrough
-- `demoni` (bootstrap script) — Updated wrapper template
+- `~/bin/jamini` (installed wrapper) — `-t` flag + TERM/COLORTERM passthrough
+- `jamini` (bootstrap script) — Updated wrapper template
 - `src/cli.ts` — v0.2.3, branded banner updated
 - `src/stderr-filter.ts` — Fixed pattern matching for emoji-prefixed warnings
 - `dist/stderr-filter.js` — Recompiled
@@ -31,13 +31,13 @@
 - `PRIVACY_LOCKDOWN.md` — v0.2.3 references
 - `RELEASE-NOTES.md` — This entry
 
-# Demoni Release Notes
+# Jamini Release Notes
 
 ## v0.2.2 (2026-05-14)
 
 ### Critical Fix
 - **Interactive mode restored**: Fixed TTY detection for Gemini CLI child process.
-  `demoni` and `demoni -y` now enter interactive mode correctly (like upstream `gemini`).
+  `jamini` and `jamini -y` now enter interactive mode correctly (like upstream `gemini`).
   The root cause was Node.js `child_process.spawn` passing `process.stdin` as a stream
   object, which created a pipe instead of inheriting the TTY descriptor. Changed to
   `stdio: ['inherit', 'inherit', 'pipe']`.
@@ -64,7 +64,7 @@
   to deprecate filters.
 - **TypeScript hygiene**: Replaced `catch (err: any)` with `catch (err: unknown)` + type guards
   in `src/cli.ts`.
-- **Test coverage**: Added 3 new CLI integration tests for demoni-branded no-input message,
+- **Test coverage**: Added 3 new CLI integration tests for jamini-branded no-input message,
   stderr filter warning suppression, and YOLO deduplication. Total test count: 180 (up from
   177).
 
@@ -85,12 +85,12 @@
 
 ### Release Blockers Fixed
 - **SSE streaming**: Removed `data: [DONE]` from Gemini SSE responses — real Gemini CLI no longer crashes with SyntaxError
-- **Security**: `bin/demoni-print-config` no longer leaks raw `DEEPSEEK_API_KEY`; prints `<set (redacted)>` only
+- **Security**: `bin/jamini-print-config` no longer leaks raw `DEEPSEEK_API_KEY`; prints `<set (redacted)>` only
 
 ### Production Hardening
 - **Source hygiene**: Removed `.env`, `.codeseeq/`, `.DS_Store` from repo; added `check:release-hygiene` script
 - **Model policy**: Strict enforcement — only `v4-flash`, `v4-flash-thinking`, `v4-pro`, `v4-pro-thinking` accepted; provider aliases rejected
-- **Bridge startup**: Server only auto-starts with `DEMONI_BRIDGE_AUTO_START=1` flag; safe for test imports
+- **Bridge startup**: Server only auto-starts with `JAMINI_BRIDGE_AUTO_START=1` flag; safe for test imports
 - **Graceful shutdown**: Fixed double `server.close()` with `shuttingDown` guard
 - **Brave/Unstructured**: 501 stubs removed; tools disabled until fully implemented
 - **LiteLLM**: Hidden from help/docs; experimental only
@@ -100,20 +100,20 @@
 ### CI/CD
 - **Extended workflow**: Added static checks job (ShellCheck, bash -n, secret scan, executable permissions, git whitespace), package verification job (npm pack dry-run + release hygiene), and enhanced docker smoke tests (gemini CLI available, model catalog present, config generation)
 - **Release job moved into CI workflow**: The release step now lives inside `ci.yml` as a 5th job (`release`) with `needs: [static, test, package, docker]`, only firing on `v*` tags — visible as a distinct step in the pipeline UI instead of a hidden downstream workflow
-- **Gemini CLI auto-install**: `./demoni install` now detects `gemini`/`gemini-cli` and auto-installs `@google/gemini-cli` globally via npm if missing — one command does everything
+- **Gemini CLI auto-install**: `./jamini install` now detects `gemini`/`gemini-cli` and auto-installs `@google/gemini-cli` globally via npm if missing — one command does everything
 - **Repo cleanup**: Removed vendored `gemini-cli/` (204MB), `codeseeq/` (741MB), and reference folders `jeanclaude-github/`, `codeseeq-github/`
 
 ### Distribution
-- **curl | bash installer**: `install.sh` fetches the latest GitHub release zip, extracts it, and runs `./demoni install` — one command from zero to working demoni
+- **curl | bash installer**: `install.sh` fetches the latest GitHub release zip, extracts it, and runs `./jamini install` — one command from zero to working jamini
 - **Release workflow**: Release job inside `ci.yml` auto-creates GitHub releases with zip archives on `v*` tags via `git archive`
-- **README overhaul**: Replaced npm install instructions with curl/git/manual install options; removed Docker section (now handled by `./demoni install`)
+- **README overhaul**: Replaced npm install instructions with curl/git/manual install options; removed Docker section (now handled by `./jamini install`)
 
 ### Developer Experience
-- **Bootstrap script**: Added `./demoni` bootstrap/installer — `./demoni build` builds the Docker/Podman image, `./demoni install` installs to ~/.config/demoni and ~/bin/demoni for direct PATH access
+- **Bootstrap script**: Added `./jamini` bootstrap/installer — `./jamini build` builds the Docker/Podman image, `./jamini install` installs to ~/.config/jamini and ~/bin/jamini for direct PATH access
 - **CI fixes**: Docker tests excluded from test job (no Docker daemon), bridge auto-start flag added to docker job
 
 ### Testing
-- **Real Gemini CLI E2E**: Created `test/real-gemini-cli.integration.test.ts` — proves full flow: mock DeepSeek → bridge → real Gemini CLI, no Google auth, no `[DONE]` crash (gated: `DEMONI_RUN_REAL_GEMINI_TESTS=1`)
+- **Real Gemini CLI E2E**: Created `test/real-gemini-cli.integration.test.ts` — proves full flow: mock DeepSeek → bridge → real Gemini CLI, no Google auth, no `[DONE]` crash (gated: `JAMINI_RUN_REAL_GEMINI_TESTS=1`)
 - **144 tests passing**, 7 skipped (6 Docker + 1 real Gemini E2E)
 
 ### Packaging
@@ -122,7 +122,7 @@
 
 ### Known Limitations
 - Docker tests require Docker runtime (6 tests skipped otherwise)
-- Real Gemini CLI E2E gated behind `DEMONI_RUN_REAL_GEMINI_TESTS=1`
+- Real Gemini CLI E2E gated behind `JAMINI_RUN_REAL_GEMINI_TESTS=1`
 - 39 ESLint warnings from `any` types in translation code (0 errors)
 
 ---

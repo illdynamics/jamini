@@ -1,4 +1,4 @@
-// ── Demoni model catalog ──────────────────────────────────────────────
+// ── Jamini model catalog ──────────────────────────────────────────────
 
 export interface ModelEntry {
   /** User-facing short name e.g. v4-flash, v4-flash-thinking */

@@ -88,7 +88,7 @@ function isBlockedHost(hostname: string): boolean {
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 const LEVEL_RANK: Record<LogLevel, number> = { debug: 0, info: 1, warn: 2, error: 3 };
 const CURRENT_LEVEL: LogLevel =
-  (process.env.DEMONI_BRIDGE_LOG_LEVEL as LogLevel) || 'info';
+  (process.env.JAMINI_BRIDGE_LOG_LEVEL as LogLevel) || 'info';
 
 let logStream: fs.WriteStream | null = null;
 
@@ -225,7 +225,7 @@ export function resolveModel(raw: string): ModelEntry {
   // Explicitly reject Google/Gemini model names
   if (isGoogleModel(normalized)) {
     throw new Error(
-      `This is Demoni. Only DeepSeek models are available: ` +
+      `This is Jamini. Only DeepSeek models are available: ` +
         `${MODEL_CATALOG.map((m) => m.id).join(', ')}. ` +
         `Google/Gemini models are not supported.`,
     );
@@ -237,7 +237,7 @@ export function resolveModel(raw: string): ModelEntry {
   if (provMatch) return provMatch;
 
   throw new Error(
-    `Unsupported Demoni model "${normalized}". Choose one of: ${SUPPORTED_IDS}`,
+    `Unsupported Jamini model "${normalized}". Choose one of: ${SUPPORTED_IDS}`,
   );
 }
 
@@ -314,7 +314,7 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
     res.status(403).json({
       error: {
         code: 403,
-        message: 'Blocked Google/Gemini route by privacy policy. Demoni is configured for DeepSeek-only operation.',
+        message: 'Blocked Google/Gemini route by privacy policy. Jamini is configured for DeepSeek-only operation.',
         status: 'PERMISSION_DENIED',
       },
     });
@@ -377,7 +377,7 @@ function requireBridgeAuth(
     res.status(403).json({
       error: {
         code: 403,
-        message: 'Blocked Google OAuth authentication by privacy policy. Demoni uses local bridge API keys only.',
+        message: 'Blocked Google OAuth authentication by privacy policy. Jamini uses local bridge API keys only.',
         status: 'PERMISSION_DENIED',
       },
     });
@@ -389,7 +389,7 @@ function requireBridgeAuth(
     res.status(403).json({
       error: {
         code: 403,
-        message: 'Blocked Google Application Credentials by privacy policy. Demoni uses local bridge API keys only.',
+        message: 'Blocked Google Application Credentials by privacy policy. Jamini uses local bridge API keys only.',
         status: 'PERMISSION_DENIED',
       },
     });
@@ -456,7 +456,7 @@ app.get('/readyz', (_req, res) => {
 });
 
 app.get('/version', (_req, res) => {
-  res.json({ version: '0.3.0', name: 'demoni-bridge' });
+  res.json({ version: '0.3.0', name: 'jamini-bridge' });
 });
 
 app.get('/debug/config', (_req, res) => {
@@ -519,7 +519,7 @@ function buildModelList() {
   return {
     models: MODEL_CATALOG.map((m) => ({
       name: `models/${m.id}`,
-      version: 'demoni-v2',
+      version: 'jamini-v2',
       displayName: m.displayName,
       description: m.description,
       inputTokenLimit: 128_000,
@@ -544,7 +544,7 @@ app.get(['/v1beta/models/:modelId', '/v1/models/:modelId'], (req, res) => {
     const m = resolveModel(req.params.modelId);
     res.json({
       name: `models/${m.id}`,
-      version: 'demoni-v2',
+      version: 'jamini-v2',
       displayName: m.displayName,
       description: m.description,
       inputTokenLimit: 128_000,
@@ -761,17 +761,17 @@ function extractModelFromPath(req: express.Request): string {
 function checkUnsupportedMedia(reqBody: GeminiGenerateContentRequest): string | null {
   // Check for cachedContent at request level
   if (reqBody.cachedContent) {
-    return 'cachedContent is not supported by Demoni bridge';
+    return 'cachedContent is not supported by Jamini bridge';
   }
 
   // Check all content parts for inlineData / fileData
   for (const content of reqBody.contents) {
     for (const part of content.parts) {
       if (part.inlineData) {
-        return 'inlineData is not supported by Demoni bridge';
+        return 'inlineData is not supported by Jamini bridge';
       }
       if (part.fileData) {
-        return 'fileData is not supported by Demoni bridge';
+        return 'fileData is not supported by Jamini bridge';
       }
     }
   }
@@ -822,8 +822,8 @@ async function handleGenerateContent(
     } else if (upstreamStatus === 429) {
       sendError(res, 503, 'DeepSeek rate limited — retry later', 'RESOURCE_EXHAUSTED', requestId);
     } else {
-      const status = error?.message?.startsWith('This is Demoni') ||
-        error?.message?.startsWith('Unsupported Demoni model')
+      const status = error?.message?.startsWith('This is Jamini') ||
+        error?.message?.startsWith('Unsupported Jamini model')
         ? 400
         : 502;
       sendError(res, status, error?.message || 'bridge request failed', undefined, requestId);
@@ -1170,7 +1170,7 @@ function startBridge(): ReturnType<typeof app.listen> {
   writePidFile();
 
   server = app.listen(config.port, config.host, () => {
-    log('info', `Demoni bridge v0.3.0 listening on http://${config.host}:${config.port}`);
+    log('info', `Jamini bridge v0.3.0 listening on http://${config.host}:${config.port}`);
     log('info', `Default model: ${DEFAULT_MODEL.id}`);
     log('info', `DeepSeek: ${config.deepseekApiKey ? 'configured' : 'MISSING'}`);
     log('info', `Brave Search: ${config.braveApiKey ? 'key present but tool disabled' : 'disabled'}`);
@@ -1190,9 +1190,9 @@ function startBridge(): ReturnType<typeof app.listen> {
 }
 
 // Auto-start unless explicitly suppressed (for tests/imports)
-// CLI wrapper sets DEMONI_BRIDGE_AUTO_START=1 when spawning bridge process
+// CLI wrapper sets JAMINI_BRIDGE_AUTO_START=1 when spawning bridge process
 // Tests import helpers without setting this flag, so server won't start
-if (process.env.DEMONI_BRIDGE_AUTO_START === '1') {
+if (process.env.JAMINI_BRIDGE_AUTO_START === '1') {
   startBridge();
 }
 

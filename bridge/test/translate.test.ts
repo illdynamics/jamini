@@ -552,27 +552,27 @@ describe('translateDeepSeekStreamToGemini', () => {
 
 describe('resolveModel (Google model rejection)', () => {
   it('rejects gemini-2.0-flash', () => {
-    expect(() => resolveModel('gemini-2.0-flash')).toThrow(/This is Demoni/);
+    expect(() => resolveModel('gemini-2.0-flash')).toThrow(/This is Jamini/);
     expect(() => resolveModel('gemini-2.0-flash')).toThrow(/Google\/Gemini models are not supported/);
   });
 
   it('rejects models/gemini-2.5-pro', () => {
-    expect(() => resolveModel('models/gemini-2.5-pro')).toThrow(/This is Demoni/);
+    expect(() => resolveModel('models/gemini-2.5-pro')).toThrow(/This is Jamini/);
   });
 
   it('rejects gemini-pro', () => {
-    expect(() => resolveModel('gemini-pro')).toThrow(/This is Demoni/);
+    expect(() => resolveModel('gemini-pro')).toThrow(/This is Jamini/);
   });
 
   it('rejects palm-2', () => {
-    expect(() => resolveModel('palm-2')).toThrow(/This is Demoni/);
+    expect(() => resolveModel('palm-2')).toThrow(/This is Jamini/);
   });
 
   it('rejects models/chat-bison', () => {
-    expect(() => resolveModel('models/chat-bison')).toThrow(/This is Demoni/);
+    expect(() => resolveModel('models/chat-bison')).toThrow(/This is Jamini/);
   });
 
-  it('still resolves valid Demoni models', () => {
+  it('still resolves valid Jamini models', () => {
     const m = resolveModel('v4-flash');
     expect(m.id).toBe('v4-flash');
   });
@@ -616,7 +616,7 @@ describe('redactSecrets', () => {
   beforeAll(() => {
     process.env.DEEPSEEK_API_KEY = 'sk-test-deepseek-key-12345';
     process.env.BRAVE_API_KEY = 'bsa-test-brave-key-67890';
-    process.env.DEMONI_BRIDGE_LOCAL_API_KEY = 'demoni-local-secret-key';
+    process.env.JAMINI_BRIDGE_LOCAL_API_KEY = 'jamini-local-secret-key';
   });
 
   afterAll(() => {
@@ -651,9 +651,9 @@ describe('redactSecrets', () => {
   });
 
   it('redacts x-api-key header values', () => {
-    const input = 'x-api-key=demoni-local-secret-key';
+    const input = 'x-api-key=jamini-local-secret-key';
     const result = redactSecrets(input);
-    expect(result).not.toContain('demoni-local-secret-key');
+    expect(result).not.toContain('jamini-local-secret-key');
     expect(result).toContain('[REDACTED]');
   });
 
@@ -673,23 +673,23 @@ describe('redactSecrets', () => {
 // ═══════════════════════════════════════════════════════════════════════
 
 describe('PID file', () => {
-  // const testPidFile = `${homedir()}/.demoni/run/bridge.pid`;
+  // const testPidFile = `${homedir()}/.jamini/run/bridge.pid`;
 
   // The PID file is written during server startup.
   // Since we can't start a full server in unit tests easily,
   // we test the supporting logic: env var resolution and file I/O patterns.
 
-  it('DEMONI_PID_FILE env var is respected', () => {
+  it('JAMINI_PID_FILE env var is respected', () => {
     // This tests that the config layer supports PID_FILE override
     // The actual writing is done in server startup (integration test territory)
     // For unit test: verify environment handling is correct
-    const pidFromEnv = process.env.DEMONI_PID_FILE;
+    const pidFromEnv = process.env.JAMINI_PID_FILE;
     // Just verify the config import doesn't crash
     expect(typeof pidFromEnv === 'string' || pidFromEnv === undefined).toBe(true);
   });
 
   it('can write and delete PID file manually', () => {
-    const testFile = `/tmp/demoni-test-pid-${Date.now()}.pid`;
+    const testFile = `/tmp/jamini-test-pid-${Date.now()}.pid`;
     try {
       fs.mkdirSync(path.dirname(testFile), { recursive: true });
       fs.writeFileSync(testFile, String(process.pid), 'utf8');

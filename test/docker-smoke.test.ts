@@ -1,13 +1,13 @@
 /**
  * Docker Smoke Test
  *
- * Builds the Docker image and verifies demoni works inside the container.
+ * Builds the Docker image and verifies jamini works inside the container.
  * Skipped if docker is not available or image can't be built.
  */
 import { describe, it, expect, beforeAll } from 'vitest';
 import { execSync, spawnSync } from 'node:child_process';
 
-const IMAGE = 'demoni:test';
+const IMAGE = 'jamini:test';
 
 function dockerAvailable(): boolean {
   try {
@@ -72,22 +72,22 @@ describe.runIf(RUN_TESTS)('Docker Smoke Test', () => {
     buildImage();
   }, 180_000);
 
-  it('demoni --help works inside container', () => {
-    const result = runInContainer(['demoni', '--help']);
-    expect(result.stdout).toContain('Demoni');
+  it('jamini --help works inside container', () => {
+    const result = runInContainer(['jamini', '--help']);
+    expect(result.stdout).toContain('Jamini');
     expect(result.stdout).toContain('v4-flash');
     expect(result.exitCode).toBe(0);
   });
 
-  it('demoni --version works inside container', () => {
-    const result = runInContainer(['demoni', '--version']);
-    expect(result.stdout).toContain('demoni v');
+  it('jamini --version works inside container', () => {
+    const result = runInContainer(['jamini', '--version']);
+    expect(result.stdout).toContain('jamini v');
     expect(result.exitCode).toBe(0);
   });
 
-  it('demoni with DEEPSEEK_API_KEY exits cleanly (no Google auth attempt)', () => {
+  it('jamini with DEEPSEEK_API_KEY exits cleanly (no Google auth attempt)', () => {
     const result = runInContainer(
-      ['demoni', '--version'],
+      ['jamini', '--version'],
       { DEEPSEEK_API_KEY: 'sk-test-key' },
     );
     expect(result.exitCode).toBe(0);
@@ -102,15 +102,15 @@ describe.runIf(RUN_TESTS)('Docker Smoke Test', () => {
 
   it('bridge scripts are present', () => {
     // --entrypoint ls overrides the image ENTRYPOINT so we can
-    // check for file existence without invoking the Demoni CLI
-    const result = runInContainerWithEntrypoint('ls', ['/opt/demoni/bridge/dist/server.js']);
+    // check for file existence without invoking the Jamini CLI
+    const result = runInContainerWithEntrypoint('ls', ['/opt/jamini/bridge/dist/server.js']);
     expect(result.exitCode).toBe(0);
   });
 
   it('model catalog is present', () => {
     // --entrypoint cat overrides the image ENTRYPOINT so we can
-    // check the catalog contents without invoking the Demoni CLI
-    const result = runInContainerWithEntrypoint('cat', ['/opt/demoni/config/model-catalog.json']);
+    // check the catalog contents without invoking the Jamini CLI
+    const result = runInContainerWithEntrypoint('cat', ['/opt/jamini/config/model-catalog.json']);
     expect(result.stdout).toContain('v4-flash');
     expect(result.stdout).toContain('v4-pro');
     expect(result.exitCode).toBe(0);

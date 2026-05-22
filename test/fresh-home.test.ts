@@ -1,7 +1,7 @@
 /**
  * Fresh HOME Auth Bypass Test
  *
- * Verifies that demoni never triggers Google OAuth, even with a fresh HOME dir.
+ * Verifies that jamini never triggers Google OAuth, even with a fresh HOME dir.
  */
 import { describe, it, expect, afterAll } from 'vitest';
 import { spawn } from 'node:child_process';
@@ -50,23 +50,23 @@ describe('Fresh HOME Auth Bypass', () => {
   });
 
   it('does not trigger Google auth in fresh HOME', async () => {
-    const tempHome = mkdtempSync(join(tmpdir(), 'demoni-fresh-home-'));
+    const tempHome = mkdtempSync(join(tmpdir(), 'jamini-fresh-home-'));
     tempDirs.push(tempHome);
 
-    const demoniHome = join(tempHome, '.demoni');
+    const jaminiHome = join(tempHome, '.jamini');
 
     const { stdout, stderr, exitCode } = await runCli(
       ['--help'],
       {
         HOME: tempHome,
-        DEMONI_HOME: demoniHome,
+        JAMINI_HOME: jaminiHome,
         DEEPSEEK_API_KEY: 'sk-test-fresh-home',
         PATH: process.env.PATH || '/usr/bin',
       },
     );
 
     expect(exitCode).toBe(0);
-    expect(stdout).toContain('demoni');
+    expect(stdout).toContain('jamini');
 
     // Verify no Google auth URLs were printed
     const combined = stdout + stderr;
@@ -77,40 +77,40 @@ describe('Fresh HOME Auth Bypass', () => {
   });
 
   it('direnctories are created for real invocations', async () => {
-    const tempHome = mkdtempSync(join(tmpdir(), 'demoni-dirs-'));
+    const tempHome = mkdtempSync(join(tmpdir(), 'jamini-dirs-'));
     tempDirs.push(tempHome);
 
-    const demoniHome = join(tempHome, '.demoni');
+    const jaminiHome = join(tempHome, '.jamini');
 
     // Run with a 2s kill — directories are created sync before bridge starts
     await runCli(
       ['-m', 'v4-flash', 'hello'],
       {
         HOME: tempHome,
-        DEMONI_HOME: demoniHome,
+        JAMINI_HOME: jaminiHome,
         DEEPSEEK_API_KEY: 'sk-test-fresh-dirs',
         PATH: process.env.PATH || '/usr/bin',
       },
       2000, // short timeout
     );
 
-    // Check that demoni directories were created
-    expect(existsSync(demoniHome)).toBe(true);
+    // Check that jamini directories were created
+    expect(existsSync(jaminiHome)).toBe(true);
   });
 
   it('writes Gemini CLI settings with API-key auth mode', async () => {
-    const tempHome = mkdtempSync(join(tmpdir(), 'demoni-settings-'));
+    const tempHome = mkdtempSync(join(tmpdir(), 'jamini-settings-'));
     tempDirs.push(tempHome);
 
-    const demoniHome = join(tempHome, '.demoni');
-    const geminiCliHome = join(demoniHome, 'gemini-cli-home');
+    const jaminiHome = join(tempHome, '.jamini');
+    const geminiCliHome = join(jaminiHome, 'gemini-cli-home');
 
     // Use a short-lived invocation — settings are written sync before bridge
     await runCli(
       ['-m', 'v4-flash', 'hello'],
       {
         HOME: tempHome,
-        DEMONI_HOME: demoniHome,
+        JAMINI_HOME: jaminiHome,
         GEMINI_CLI_HOME: geminiCliHome,
         DEEPSEEK_API_KEY: 'sk-test-fresh-settings',
         PATH: process.env.PATH || '/usr/bin',
@@ -136,16 +136,16 @@ describe('Fresh HOME Auth Bypass', () => {
   });
 
   it('creates no Google auth files', async () => {
-    const tempHome = mkdtempSync(join(tmpdir(), 'demoni-no-google-'));
+    const tempHome = mkdtempSync(join(tmpdir(), 'jamini-no-google-'));
     tempDirs.push(tempHome);
 
-    const demoniHome = join(tempHome, '.demoni');
+    const jaminiHome = join(tempHome, '.jamini');
 
     await runCli(
       ['--help'],
       {
         HOME: tempHome,
-        DEMONI_HOME: demoniHome,
+        JAMINI_HOME: jaminiHome,
         DEEPSEEK_API_KEY: 'sk-test-no-google',
         PATH: process.env.PATH || '/usr/bin',
       },
@@ -167,7 +167,7 @@ describe('Fresh HOME Auth Bypass', () => {
 
     const googleFiles = [
       ...checkForGoogleFiles(tempHome),
-      ...checkForGoogleFiles(demoniHome),
+      ...checkForGoogleFiles(jaminiHome),
     ];
 
     // No Google-related files should have been created
@@ -175,17 +175,17 @@ describe('Fresh HOME Auth Bypass', () => {
   });
 
   it('does not require Google env vars', async () => {
-    const tempHome = mkdtempSync(join(tmpdir(), 'demoni-no-google-env-'));
+    const tempHome = mkdtempSync(join(tmpdir(), 'jamini-no-google-env-'));
     tempDirs.push(tempHome);
 
-    const demoniHome = join(tempHome, '.demoni');
+    const jaminiHome = join(tempHome, '.jamini');
 
     // Explicitly unset Google env vars
     const { stdout, exitCode } = await runCli(
       ['--help'],
       {
         HOME: tempHome,
-        DEMONI_HOME: demoniHome,
+        JAMINI_HOME: jaminiHome,
         DEEPSEEK_API_KEY: 'sk-test-no-google-env',
         PATH: process.env.PATH || '/usr/bin',
         // Unset Google auth vars
@@ -201,44 +201,44 @@ describe('Fresh HOME Auth Bypass', () => {
     expect(stdout).not.toContain('GOOGLE_APPLICATION_CREDENTIALS');
   });
 
-  it('demoni --help in fresh HOME doesn\'t need real DeepSeek key', async () => {
-    const tempHome = mkdtempSync(join(tmpdir(), 'demoni-no-real-key-'));
+  it('jamini --help in fresh HOME doesn\'t need real DeepSeek key', async () => {
+    const tempHome = mkdtempSync(join(tmpdir(), 'jamini-no-real-key-'));
     tempDirs.push(tempHome);
 
-    const demoniHome = join(tempHome, '.demoni');
+    const jaminiHome = join(tempHome, '.jamini');
 
     // Even with an obviously fake key, --help should work
     const { stdout, exitCode } = await runCli(
       ['--help'],
       {
         HOME: tempHome,
-        DEMONI_HOME: demoniHome,
+        JAMINI_HOME: jaminiHome,
         DEEPSEEK_API_KEY: 'not-a-real-key',
         PATH: process.env.PATH || '/usr/bin',
       },
     );
 
     expect(exitCode).toBe(0);
-    expect(stdout).toContain('demoni');
+    expect(stdout).toContain('jamini');
   });
 
-  it('demoni --version in fresh HOME works without real key', async () => {
-    const tempHome = mkdtempSync(join(tmpdir(), 'demoni-version-no-key-'));
+  it('jamini --version in fresh HOME works without real key', async () => {
+    const tempHome = mkdtempSync(join(tmpdir(), 'jamini-version-no-key-'));
     tempDirs.push(tempHome);
 
-    const demoniHome = join(tempHome, '.demoni');
+    const jaminiHome = join(tempHome, '.jamini');
 
     const { stdout, exitCode } = await runCli(
       ['--version'],
       {
         HOME: tempHome,
-        DEMONI_HOME: demoniHome,
+        JAMINI_HOME: jaminiHome,
         DEEPSEEK_API_KEY: 'not-real',
         PATH: process.env.PATH || '/usr/bin',
       },
     );
 
     expect(exitCode).toBe(0);
-    expect(stdout).toContain('demoni v');
+    expect(stdout).toContain('jamini v');
   });
 });

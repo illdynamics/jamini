@@ -295,14 +295,14 @@ async function startBridge(): Promise<string> {
     {
       env: {
         ...process.env,
-        DEMONI_BRIDGE_PORT: String(port),
-        DEMONI_BRIDGE_AUTO_START: "1",
-        DEMONI_BRIDGE_HOST: '127.0.0.1',
-        DEMONI_BRIDGE_LOCAL_API_KEY: bridgeAuthKey,
+        JAMINI_BRIDGE_PORT: String(port),
+        JAMINI_BRIDGE_AUTO_START: "1",
+        JAMINI_BRIDGE_HOST: '127.0.0.1',
+        JAMINI_BRIDGE_LOCAL_API_KEY: bridgeAuthKey,
         DEEPSEEK_API_KEY: 'sk-mock-deepseek-key',
         DEEPSEEK_API_BASE: mockDeepSeekBaseUrl,
-        DEMONI_MODEL: 'v4-flash',
-        DEMONI_REQUEST_MAX_RETRIES: '0',
+        JAMINI_MODEL: 'v4-flash',
+        JAMINI_REQUEST_MAX_RETRIES: '0',
         BRAVE_API_KEY: '',
         UNSTRUCTURED_API_KEY: '',
       },
@@ -372,7 +372,7 @@ describe('Bridge API Contract', () => {
       const body = await res.json();
       expect(body.version).toBeTruthy();
       expect(typeof body.version).toBe('string');
-      expect(body.name).toBe('demoni-bridge');
+      expect(body.name).toBe('jamini-bridge');
     });
     it('GET /debug/config redacts secrets', async () => {
       const res = await bridgeFetch('/debug/config');

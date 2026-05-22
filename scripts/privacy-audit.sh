@@ -15,7 +15,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
 echo "=============================================="
-echo " Demoni Privacy Audit"
+echo " Jamini Privacy Audit"
 echo " $(date)"
 echo "=============================================="
 echo ""

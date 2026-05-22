@@ -1,5 +1,5 @@
 /**
- * Demoni stderr filter — suppresses known Gemini CLI startup warnings.
+ * Jamini stderr filter — suppresses known Gemini CLI startup warnings.
  *
  * The upstream Gemini CLI bundle emits several noisy startup messages that
  * we suppress: true-color warning, ripgrep fallback, cleanup_ops profiler
@@ -14,7 +14,7 @@
  *
  *   1. On each @google/gemini-cli upgrade, run the smoke test:
  *        DEEPSEEK_API_KEY=sk-test-key TERM=dumb CI=true \
- *          demoni -y 2>&1 | grep -i 'warning\|startup\|ripgrep'
+ *          jamini -y 2>&1 | grep -i 'warning\|startup\|ripgrep'
  *
  *   2. If new warnings appear, add them as regexes in DROP_PATTERNS
  *      or exact strings in DROP_EXACT below.
@@ -57,12 +57,12 @@ const DROP_PATTERNS: RegExp[] = [
   /^\[STARTUP\] Cannot measure phase '.*': start mark '.*' not found \(likely cleared by reset\)\.\s*$/,
 ];
 
-/** Regex for "no input" message — replace with demoni-branded help. */
+/** Regex for "no input" message — replace with jamini-branded help. */
 const NO_INPUT_PATTERN =
   /No input provided via stdin\. Input can be provided by piping data into gemini or using the --prompt option\./;
 
 const NO_INPUT_REPLACEMENT =
-  'No input provided. Use: demoni "your question here" or demoni --prompt "..." or pipe stdin.';
+  'No input provided. Use: jamini "your question here" or jamini --prompt "..." or pipe stdin.';
 
 // ── YOLO deduplication tracker ─────────────────────────────────────
 
@@ -96,7 +96,7 @@ export function filterStderrLine(line: string): string {
     return line;
   }
 
-  // 4. "gemini" → "demoni" in no-input message
+  // 4. "gemini" → "jamini" in no-input message
   if (NO_INPUT_PATTERN.test(trimmed) || NO_INPUT_PATTERN.test(stripped)) {
     return line.replace(NO_INPUT_PATTERN, NO_INPUT_REPLACEMENT);
   }

@@ -1,9 +1,9 @@
 /**
- * Demoni configuration management.
+ * Jamini configuration management.
  *
  * Loads config from:
  *   1. Default hardcoded values
- *   2. ~/.demoni/config.json (created with defaults if missing)
+ *   2. ~/.jamini/config.json (created with defaults if missing)
  *   3. Environment variable overrides
  *
  * Secrets (API keys) are NEVER written to config files.
@@ -20,7 +20,7 @@ export type TranslatorMode = 'auto' | 'litellm' | 'custom';
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 export type EnableFlag = 'auto' | 'on' | 'off';
 
-export interface DemoniConfig {
+export interface JaminiConfig {
   defaultModel: string;
   bridgeMode: BridgeMode;
   translatorMode: TranslatorMode;
@@ -34,7 +34,7 @@ export interface DemoniConfig {
 
 // ── Defaults ───────────────────────────────────────────────────────
 
-const DEFAULTS: DemoniConfig = {
+const DEFAULTS: JaminiConfig = {
   defaultModel: 'v4-flash-thinking',
   bridgeMode: 'auto',
   translatorMode: 'auto',
@@ -48,12 +48,12 @@ const DEFAULTS: DemoniConfig = {
 
 // ── Paths ──────────────────────────────────────────────────────────
 
-export function getDemoniHome(): string {
-  return process.env.DEMONI_HOME || join(homedir(), '.demoni');
+export function getJaminiHome(): string {
+  return process.env.JAMINI_HOME || join(homedir(), '.jamini');
 }
 
 function configFilePath(): string {
-  return join(getDemoniHome(), 'config.json');
+  return join(getJaminiHome(), 'config.json');
 }
 
 function ensureDir(filePath: string): void {
@@ -65,12 +65,12 @@ function ensureDir(filePath: string): void {
 
 // ── Load from JSON ──────────────────────────────────────────────────
 
-function loadFileConfig(): Partial<DemoniConfig> {
+function loadFileConfig(): Partial<JaminiConfig> {
   const path = configFilePath();
   if (!existsSync(path)) return {};
   try {
     const raw = JSON.parse(readFileSync(path, 'utf8'));
-    const out: Partial<DemoniConfig> = {};
+    const out: Partial<JaminiConfig> = {};
     if (typeof raw.defaultModel === 'string') out.defaultModel = raw.defaultModel;
     if (isBridgeMode(raw.bridgeMode)) out.bridgeMode = raw.bridgeMode;
     if (isTranslatorMode(raw.translatorMode)) out.translatorMode = raw.translatorMode;
@@ -90,19 +90,19 @@ function loadFileConfig(): Partial<DemoniConfig> {
 
 // ── Env overrides ───────────────────────────────────────────────────
 
-function loadEnvOverrides(): Partial<DemoniConfig> {
-  const out: Partial<DemoniConfig> = {};
+function loadEnvOverrides(): Partial<JaminiConfig> {
+  const out: Partial<JaminiConfig> = {};
 
-  if (process.env.DEMONI_MODEL) out.defaultModel = process.env.DEMONI_MODEL;
-  if (isBridgeMode(process.env.DEMONI_BRIDGE_MODE)) out.bridgeMode = process.env.DEMONI_BRIDGE_MODE;
-  if (isTranslatorMode(process.env.DEMONI_TRANSLATOR_MODE)) out.translatorMode = process.env.DEMONI_TRANSLATOR_MODE;
+  if (process.env.JAMINI_MODEL) out.defaultModel = process.env.JAMINI_MODEL;
+  if (isBridgeMode(process.env.JAMINI_BRIDGE_MODE)) out.bridgeMode = process.env.JAMINI_BRIDGE_MODE;
+  if (isTranslatorMode(process.env.JAMINI_TRANSLATOR_MODE)) out.translatorMode = process.env.JAMINI_TRANSLATOR_MODE;
   if (process.env.DEEPSEEK_BASE_URL) out.deepseekBaseUrl = process.env.DEEPSEEK_BASE_URL;
-  if (isLogLevel(process.env.DEMONI_LOG_LEVEL)) out.logLevel = process.env.DEMONI_LOG_LEVEL;
-  if (isEnableFlag(process.env.DEMONI_ENABLE_BRAVE_SEARCH)) out.enableBraveSearch = process.env.DEMONI_ENABLE_BRAVE_SEARCH;
-  if (isEnableFlag(process.env.DEMONI_ENABLE_UNSTRUCTURED)) out.enableUnstructured = process.env.DEMONI_ENABLE_UNSTRUCTURED;
-  if (process.env.DEMONI_SYSTEM_PROMPT) out.systemPrompt = process.env.DEMONI_SYSTEM_PROMPT;
-  if (process.env.DEMONI_HISTORY_MODE === 'ephemeral' || process.env.DEMONI_HISTORY_MODE === 'local' || process.env.DEMONI_HISTORY_MODE === 'off') {
-    out.historyMode = process.env.DEMONI_HISTORY_MODE;
+  if (isLogLevel(process.env.JAMINI_LOG_LEVEL)) out.logLevel = process.env.JAMINI_LOG_LEVEL;
+  if (isEnableFlag(process.env.JAMINI_ENABLE_BRAVE_SEARCH)) out.enableBraveSearch = process.env.JAMINI_ENABLE_BRAVE_SEARCH;
+  if (isEnableFlag(process.env.JAMINI_ENABLE_UNSTRUCTURED)) out.enableUnstructured = process.env.JAMINI_ENABLE_UNSTRUCTURED;
+  if (process.env.JAMINI_SYSTEM_PROMPT) out.systemPrompt = process.env.JAMINI_SYSTEM_PROMPT;
+  if (process.env.JAMINI_HISTORY_MODE === 'ephemeral' || process.env.JAMINI_HISTORY_MODE === 'local' || process.env.JAMINI_HISTORY_MODE === 'off') {
+    out.historyMode = process.env.JAMINI_HISTORY_MODE;
   }
 
   return out;
@@ -128,7 +128,7 @@ function isEnableFlag(v: unknown): v is EnableFlag {
 
 // ── Save config ────────────────────────────────────────────────────
 
-function saveConfig(cfg: DemoniConfig): void {
+function saveConfig(cfg: JaminiConfig): void {
   const path = configFilePath();
   ensureDir(path);
   // NEVER write secrets — only user-configurable non-secret values
@@ -137,7 +137,7 @@ function saveConfig(cfg: DemoniConfig): void {
 
 // ── Init (first-run) ──────────────────────────────────────────────
 
-function initializeConfig(): DemoniConfig {
+function initializeConfig(): JaminiConfig {
   const cfg = { ...DEFAULTS };
   const path = configFilePath();
   if (!existsSync(path)) {
@@ -148,13 +148,13 @@ function initializeConfig(): DemoniConfig {
 
 // ── Public API ────────────────────────────────────────────────────
 
-let _cached: DemoniConfig | null = null;
+let _cached: JaminiConfig | null = null;
 
-export function loadConfig(): DemoniConfig {
+export function loadConfig(): JaminiConfig {
   if (_cached) return _cached;
 
   // Start with defaults
-  const cfg: DemoniConfig = { ...DEFAULTS };
+  const cfg: JaminiConfig = { ...DEFAULTS };
 
   // Layer file config on top
   const fileCfg = loadFileConfig();
@@ -174,7 +174,7 @@ export function loadConfig(): DemoniConfig {
 /**
  * Reload config (clears cache). Useful for tests.
  */
-export function reloadConfig(): DemoniConfig {
+export function reloadConfig(): JaminiConfig {
   _cached = null;
   return loadConfig();
 }
@@ -183,10 +183,10 @@ export function reloadConfig(): DemoniConfig {
  * Update and persist a single config key.
  * Only allows known keys; rejects secrets.
  */
-export function updateConfig<K extends keyof DemoniConfig>(
+export function updateConfig<K extends keyof JaminiConfig>(
   key: K,
-  value: DemoniConfig[K],
-): DemoniConfig {
+  value: JaminiConfig[K],
+): JaminiConfig {
   const cfg = loadConfig();
   cfg[key] = value;
   saveConfig(cfg);
