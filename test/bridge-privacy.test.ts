@@ -179,4 +179,3 @@ describe('Bridge Privacy - Host Blocklist', () => {
     expect(isBlockedHost('example.com')).toBe(false);
   });
 });
-

@@ -174,4 +174,3 @@ describe('jamini CLI', () => {
     const yoloCount = (stderr.match(/YOLO mode is enabled/g) || []).length;
     expect(yoloCount).toBeLessThanOrEqual(1);
   });
-

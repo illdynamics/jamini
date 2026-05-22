@@ -1278,4 +1278,3 @@ main().catch((err) => {
   logFile(`[fatal] ${err instanceof Error ? err.message + '\n' + (err.stack || '') : String(err)}`);
   process.exit(1);
 });
-

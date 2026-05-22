@@ -166,4 +166,3 @@ Include:
 - Output of `jamini --version` (if it gets that far)
 - Debug output with `JAMINI_DEBUG=1`
 - Your OS and container runtime (if applicable)
-

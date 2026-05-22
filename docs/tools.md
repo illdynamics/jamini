@@ -43,4 +43,3 @@ Gemini CLI can be configured with MCP (Model Context Protocol) servers. If you a
 | `fileData` (Google Cloud files) | Returns 400 error |
 | `codeExecution` | Not advertised — not supported |
 | Google Search grounding | Not available (uses Brave Search instead when configured) |
-

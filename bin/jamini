@@ -11,4 +11,3 @@ fi
 
 # Production: use compiled CLI
 exec node "${root}/dist/cli.js" "$@"
-

@@ -9,4 +9,3 @@ if [ -n "${DEEPSEEK_API_KEY:-}" ]; then
 else
   printf 'DEEPSEEK_API_KEY=<missing>\n'
 fi
-

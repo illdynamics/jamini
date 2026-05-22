@@ -261,4 +261,3 @@ function collectFiles(dir: string): string[] {
   } catch {}
   return results;
 }
-

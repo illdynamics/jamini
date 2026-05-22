@@ -116,4 +116,3 @@ describe.runIf(RUN_TESTS)('Docker Smoke Test', () => {
     expect(result.exitCode).toBe(0);
   });
 });
-

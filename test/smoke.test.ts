@@ -174,4 +174,3 @@ describe('Jamini Smoke Test', () => {
     bridgeProcess = null;
   });
 });
-

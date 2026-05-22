@@ -28,4 +28,3 @@ fi
 printf '%s\n' "$response"
 log 'direct provider smoke test failed'
 exit 1
-

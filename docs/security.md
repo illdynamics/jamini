@@ -94,4 +94,3 @@ All Jamini-created files and directories use restrictive permissions:
 - Gemini CLI telemetry is disabled by default in the generated settings (`usageStatisticsEnabled: false`).
 - Jamini itself has no telemetry or phone-home behavior.
 - No analytics, crash reports, or usage data is sent anywhere.
-

@@ -193,4 +193,3 @@ export function updateConfig<K extends keyof JaminiConfig>(
   _cached = cfg;
   return cfg;
 }
-

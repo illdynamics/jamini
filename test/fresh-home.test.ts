@@ -242,4 +242,3 @@ describe('Fresh HOME Auth Bypass', () => {
     expect(stdout).toContain('jamini v');
   });
 });
-

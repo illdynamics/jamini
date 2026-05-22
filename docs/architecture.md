@@ -181,4 +181,3 @@ The bridge exposes these Gemini-compatible REST endpoints:
 └── gemini-cli-home/         # Isolated Gemini CLI state
     └── settings.json        # Forces API-key auth, disables OAuth
 ```
-

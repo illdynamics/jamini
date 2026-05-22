@@ -30,4 +30,3 @@ if [ -f package.json ]; then
 fi
 
 echo "[RELEASE-HYGIENE:PASS] All checks passed"
-

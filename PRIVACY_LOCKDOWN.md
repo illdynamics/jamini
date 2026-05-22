@@ -214,4 +214,3 @@ If OAuth or ADC auth is attempted:
 ---
 
 *Applied to Jamini v0.2.3+*
-
