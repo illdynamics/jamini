@@ -48,3 +48,4 @@ smoke:
 	@echo "✓ smoke check passed"
 
 .DEFAULT_GOAL := smoke
+

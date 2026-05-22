@@ -86,3 +86,4 @@ export function redactSecrets(input: string): string {
   out = out.replace(/(x-goog-api-key|x-api-key)[:\s=]+(\S+)/gi, '$1: [REDACTED]');
   return out;
 }
+

@@ -111,3 +111,4 @@ export function filterStderrLine(line: string): string {
 export function _resetYoloCount(): void {
   yoloCount = 0;
 }
+

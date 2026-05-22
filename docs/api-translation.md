@@ -196,3 +196,4 @@ Features that Gemini CLI may request but the bridge cannot translate:
 | `cachedContent` | Returns clear error if used |
 | `googleSearch` tool | Stub registered if BRAVE_API_KEY present; otherwise not advertised |
 | `codeExecution` tool | Not supported — not advertised |
+

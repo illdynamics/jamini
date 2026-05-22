@@ -167,3 +167,4 @@ describe('JaminiConfig', () => {
     expect(cfg.defaultModel).toBe('v4-flash-thinking');
   });
 });
+

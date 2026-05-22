@@ -183,3 +183,4 @@ describe.runIf(RUN_TESTS)('Real Gemini CLI E2E', () => {
     expect(result.stderr).not.toContain('[DONE]');
   }, 60000);
 });
+

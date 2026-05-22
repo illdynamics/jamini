@@ -71,3 +71,4 @@ WORKDIR /workspace
 
 ENTRYPOINT ["node", "/opt/jamini/dist/cli.js"]
 CMD []
+

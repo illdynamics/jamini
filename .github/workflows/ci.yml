@@ -194,3 +194,4 @@ jobs:
             See [RELEASE-NOTES.md](https://github.com/illdynamics/jamini/blob/main/RELEASE-NOTES.md) for full changelog.
           files: ${{ env.archive }}
           generate_release_notes: false
+

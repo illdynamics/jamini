@@ -77,3 +77,4 @@ The Gemini CLI source is never modified. Jamini wraps it with environment variab
 - Full docs: [`README.md`](./README.md)
 - Architecture: [`docs/architecture.md`](./docs/architecture.md)
 - Troubleshooting: [`docs/troubleshooting.md`](./docs/troubleshooting.md)
+

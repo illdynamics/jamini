@@ -788,3 +788,4 @@ describe('Bridge API Contract', () => {
     });
   });
 });
+

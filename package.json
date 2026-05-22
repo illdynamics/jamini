@@ -4,7 +4,7 @@
   "description": "Production-grade Gemini CLI drop-in replacement that routes to DeepSeek V4 models",
   "type": "module",
   "bin": {
-    jamini: "./bin/jamini.js"
+    "jamini": "./bin/jamini.js"
   },
   "main": "dist/cli.js",
   "files": [
@@ -68,3 +68,4 @@
     "vitest": "3.2.4"
   }
 }
+

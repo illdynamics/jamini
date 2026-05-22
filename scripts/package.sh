@@ -37,3 +37,4 @@ zip -r "$OUTPUT" jamini/ >/dev/null
 
 log "created $OUTPUT"
 mv "$OUTPUT" "${OLDPWD}/"
+

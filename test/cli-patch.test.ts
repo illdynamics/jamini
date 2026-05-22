@@ -106,3 +106,4 @@ describe('jamini CLI — advanced features', () => {
     expect(stdout).toContain('v4-pro');
   });
 });
+

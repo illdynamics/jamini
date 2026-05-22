@@ -262,3 +262,4 @@ else
   echo -e "${GREEN}✅ PRIVACY AUDIT PASSED${NC}"
   exit 0
 fi
+

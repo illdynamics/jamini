@@ -5,3 +5,4 @@ set -Eeuo pipefail
 # This just invokes the jamini CLI, which handles bridge + gemini CLI internally
 
 exec node /opt/jamini/dist/cli.js "$@"
+
